@@ -11,6 +11,10 @@ export class GoogleService {
     private readonly googleRepository: GoogleTokenRepository
   ) { }
 
+  async findGoogleTokenByGoogleId(google_id: string): Promise<GoogleToken | undefined> {
+    return this.googleRepository.findGoogleTokenByGoogleId(google_id);
+  }
+
   /* OAuth2 클라이언트 생성 */
   private createOAuthClient() {
     return new google.auth.OAuth2(

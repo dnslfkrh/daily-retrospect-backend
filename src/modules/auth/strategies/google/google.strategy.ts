@@ -25,8 +25,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const googleId = profile.id;
 
     const user = await this.userService.joinOrAlready(email, name, googleId);
+    const existingGoogleToken = await this.googleService.findGoogleTokenByGoogleId(googleId);
 
-    await this.googleService.saveGoogleTokens(user, accessToken, refreshToken);
+    if (!existingGoogleToken) {
+      await this.googleService.saveGoogleTokens(user, accessToken, refreshToken);
+    }
 
     done(null, user);
   }
