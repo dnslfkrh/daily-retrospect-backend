@@ -1,6 +1,7 @@
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from "../env/env";
 import { User } from "src/entities/user.entity";
+import { GoogleToken } from "src/entities/google-token.entity";
 
 export const mysqlConfig: TypeOrmModuleOptions = {
   type: 'mysql',
@@ -13,6 +14,6 @@ export const mysqlConfig: TypeOrmModuleOptions = {
   charset: 'utf8mb4',
   entities: [
     User,
-    
+    GoogleToken
   ]
 };
