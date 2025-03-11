@@ -1,49 +1,41 @@
-import { Controller, Get, HttpException, HttpStatus, Req, Res, UseGuards } from "@nestjs/common";
+import { Controller, Get, Query, Res, UnauthorizedException } from "@nestjs/common";
+import { Response } from "express";
 import { AuthService } from "./auth.service";
-import { Public } from "src/common/decorators/public.decorator";
-import { RefreshTokenGuard } from "./guards/refresh.guard";
-import { Request, Response } from "express";
-import { JwtPayloadWithExp, UserPayload } from "src/common/types/Payload";
-import { User } from "src/common/decorators/user.decorator";
-import { FRONTEND_URL } from "src/common/config/env/env";
-import { AuthGuard } from "@nestjs/passport";
-import { NewUserProps } from "src/common/types/Props";
+import { UserService } from "../user/user.service";
 
-interface AuthenticatedRequest extends Request {
-  user: NewUserProps;
-}
-
-@Controller('auth')
+@Controller("auth")
 export class AuthController {
   constructor(
-    private readonly authService: AuthService
+    private readonly authService: AuthService,
+    private readonly userService: UserService
   ) { }
 
-  @Public()
-  @Get('refresh')
-  @UseGuards(RefreshTokenGuard)
-  async refresh(@User() user: UserPayload, @Res() res: Response) {
-    console.log("[refresh] user: ", user);
-    if (!user) {
-      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+  @Get("cognito/callback")
+  async cognitoCallback(@Query("code") code: string, @Res() res: Response) {
+    try {
+      // 1. Cognito 로그인 후 받은 code로 Token들 가져오기
+      const tokenData = await this.authService.exchangeCodeForToken(code);
+
+      // 2. refresh token을 쿠키에 저장 (나중에 쿠키로 보내야 하는거 생기면 utils로 이동)
+      res.cookie("refresh_token", tokenData.refresh_token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax',
+      });
+
+      // 3. access token으로 사용자 정보 가져오기
+      const userInfo = await this.authService.getUserInfo(tokenData.access_token);
+      console.log("userInfo:", userInfo);
+
+      // 4. 사용자 정보 DB에 저장
+      await this.userService.joinOrAlready(userInfo);
+
+      // 5. 로그인 완료 후 클라이언트 콜백 리다이렉트
+      const frontendUrl = `http://localhost:3000/auth/callback?accessToken=${tokenData.access_token}&idToken=${tokenData.id_token}`;
+      return res.redirect(frontendUrl);
+    } catch (error) {
+      console.error("Cognito callback error:", error);
+      throw new UnauthorizedException("Failed to process Cognito Login");
     }
-    const { exp, iat, refreshToken, ...newPayload } = user as JwtPayloadWithExp;
-    const newAccessToken = this.authService.createAccessToken(newPayload);
-
-    return { accessToken: newAccessToken };
   }
-
-  @Public()
-  @Get('google/callback')
-  @UseGuards(AuthGuard('google'))
-  async googleCallback(@User() user: UserPayload, @Res() res: Response) {
-    console.log(user);
-    const { accessToken } = this.authService.setJwtTokens(user, res);
-    res.redirect(`${FRONTEND_URL}/auth/callback?accessToken=${accessToken}`);
-  }
-
-  @Public()
-  @Get('google')
-  @UseGuards(AuthGuard('google'))
-  async googleAuth() { }
 }
