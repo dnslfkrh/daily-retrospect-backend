@@ -2,20 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-google-oauth20';
 import { GOOGLE_CALLBACK_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } from 'src/common/config/env/env';
-import { GoogleService } from 'src/modules/google/google.service';
 import { UserService } from 'src/modules/user/user.service';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
     private readonly userService: UserService,
-    private readonly googleService: GoogleService
   ) {
     super({
       clientID: GOOGLE_CLIENT_ID,
       clientSecret: GOOGLE_CLIENT_SECRET,
       callbackURL: GOOGLE_CALLBACK_URL,
-      scope: ['email', 'profile', 'https://www.googleapis.com/auth/calendar'],
+      scope: ['email', 'profile'],
     });
   }
 
@@ -25,11 +23,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const googleId = profile.id;
 
     const user = await this.userService.joinOrAlready(email, name, googleId);
-    const existingGoogleToken = await this.googleService.findGoogleTokenByGoogleId(googleId);
-
-    if (!existingGoogleToken) {
-      await this.googleService.saveGoogleTokens(user, accessToken, refreshToken);
-    }
 
     done(null, user);
   }

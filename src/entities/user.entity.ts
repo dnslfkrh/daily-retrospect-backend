@@ -1,5 +1,4 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
-import { GoogleToken } from './google-token.entity';
 
 @Entity('users')
 @Index('google_id_unique', ['google_id'], { unique: true })
@@ -19,7 +18,4 @@ export class User {
 
   @CreateDateColumn()
   created_at: Date;
-
-  @OneToMany(() => GoogleToken, (googleToken) => googleToken.user)
-  googleTokens: GoogleToken[];
 }
