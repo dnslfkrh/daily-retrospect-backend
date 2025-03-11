@@ -1,44 +1,64 @@
-import { Injectable } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import { Response } from "express";
-import { ACCESS_TOKEN_EXPIRATION, ACCESS_TOKEN_SECRET, REFRESH_TOKEN_EXPIRATION, REFRESH_TOKEN_SECRET } from "src/common/config/env/env";
-import { UserPayload } from "src/common/types/Payload";
-import { NewUserProps } from "src/common/types/Props";
-import { resCookie } from "src/common/utils copy/resCookie";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { HttpService } from "@nestjs/axios";
+import { firstValueFrom } from "rxjs";
+import { UserRepository } from "src/repositories/user.repository";
+import { AWS_COGNITO_CALLBACK_URL, AWS_COGNITO_CLIENT_ID, AWS_COGNITO_CLIENT_SECRET, AWS_COGNITO_DOMAIN, AWS_REGION } from "src/common/config/env/env";
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly jwtService: JwtService
+    private readonly httpService: HttpService,
+    private readonly userRepository: UserRepository,
   ) { }
 
-  createAccessToken(payload: UserPayload) {
-    return this.jwtService.sign(payload, {
-      secret: ACCESS_TOKEN_SECRET,
-      expiresIn: `${ACCESS_TOKEN_EXPIRATION}s`
-    });
+  /* Authorization Code로 Access Token 교환 */
+  async exchangeCodeForToken(code: string) {
+    const tokenUrl = `https://${AWS_COGNITO_DOMAIN}.auth.${AWS_REGION}.amazoncognito.com/oauth2/token`;
+
+    const clientId = AWS_COGNITO_CLIENT_ID
+    const clientSecret = AWS_COGNITO_CLIENT_SECRET
+    const redirectUri = AWS_COGNITO_CALLBACK_URL
+
+    const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+
+    const data = new URLSearchParams();
+    data.append("grant_type", "authorization_code");
+    data.append("code", code);
+    data.append("redirect_uri", redirectUri);
+    data.append("client_id", clientId);
+
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(tokenUrl, data, {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Basic ${authHeader}`,
+          },
+        })
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error("Token exchange failed", error.response?.data || error.message);
+      throw new UnauthorizedException("Invalid authorization code");
+    }
   }
 
-  private createRefreshToken(payload: UserPayload) {
-    return this.jwtService.sign(payload, {
-      secret: REFRESH_TOKEN_SECRET,
-      expiresIn: `${REFRESH_TOKEN_EXPIRATION}s`
-    });
-  }
+  /*  cognito access token에서 사용자 정보 가져오기 */
+  async getUserInfo(accessToken: string) {
+    const userInfoUrl = `https://${AWS_COGNITO_DOMAIN}.auth.${AWS_REGION}.amazoncognito.com/oauth2/userInfo`;
 
-  setJwtTokens(user: UserPayload, res: Response) {
-    const payload = {
-      id: user.id,
-      google_id: user.google_id,
-      email: user.email,
-      name: user.name,
-    };
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(userInfoUrl, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        })
+      );
 
-    const accessToken = this.createAccessToken(payload);
-    const refreshToken = this.createRefreshToken(payload);
-
-    resCookie(res, 'refreshToken', refreshToken);
-
-    return { accessToken };
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch user info", error.response?.data || error.message);
+      throw new UnauthorizedException("Failed to fetch user info");
+    }
   }
 }

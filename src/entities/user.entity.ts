@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
 @Entity('users')
-@Index('google_id_unique', ['google_id'], { unique: true })
+@Index('cognito_id_unique', ['cognito_id'], { unique: true })
 @Index('email_unique', ['email'], { unique: true })
 export class User {
   @PrimaryGeneratedColumn()
@@ -14,7 +14,7 @@ export class User {
   name: string;
 
   @Column({ type: 'varchar', length: 255, unique: true })
-  google_id: string;
+  cognito_id: string;
 
   @CreateDateColumn()
   created_at: Date;
