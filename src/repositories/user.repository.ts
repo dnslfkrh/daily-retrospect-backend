@@ -13,7 +13,8 @@ export class UserRepository {
     return await this.userRepository.findOne({ where: { email } });
   }
 
-  async createUser(user: NewUserProps): Promise<User> {
-    return await this.userRepository.save(user);
+  async createUser(userData: NewUserProps): Promise<User> {
+    const newUser = this.userRepository.create(userData);
+    return await this.userRepository.save(newUser);
   }
 }

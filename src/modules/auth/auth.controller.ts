@@ -1,15 +1,17 @@
-import { Controller, Get, Query, Res, UnauthorizedException } from "@nestjs/common";
+import { Controller, Get, Post, Query, Request, Res, UnauthorizedException, UseGuards } from "@nestjs/common";
 import { Response } from "express";
 import { AuthService } from "./auth.service";
 import { UserService } from "../user/user.service";
+import { Public } from "src/common/decorators/public.decorator";
 
 @Controller("auth")
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly userService: UserService
+    private readonly userService: UserService,
   ) { }
 
+  @Public() // 가드 적용 X
   @Get("cognito/callback")
   async cognitoCallback(@Query("code") code: string, @Res() res: Response) {
     try {
@@ -25,7 +27,6 @@ export class AuthController {
 
       // 3. access token으로 사용자 정보 가져오기
       const userInfo = await this.authService.getUserInfo(tokenData.access_token);
-      console.log("userInfo:", userInfo);
 
       // 4. 사용자 정보 DB에 저장
       await this.userService.joinOrAlready(userInfo);
