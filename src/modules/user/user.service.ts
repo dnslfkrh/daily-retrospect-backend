@@ -1,5 +1,4 @@
 import { Injectable } from "@nestjs/common";
-import { NewUserProps } from "src/common/types/Props";
 import { UserRepository } from "src/repositories/user.repository";
 
 @Injectable()
@@ -8,11 +7,18 @@ export class UserService {
     private readonly userRepository: UserRepository,
   ) { }
 
-  async joinOrAlready(userInfo: NewUserProps) {
-    let user = await this.userRepository.findUserByEmail(userInfo.email);
+  async joinOrAlready(userInfo: { sub: string; name: string; email: string }) {
+    const { sub, name, email } = userInfo;
+
+    let user = await this.userRepository.findUserByEmail(email);
     if (!user) {
-      user = await this.userRepository.createUser(userInfo);
+      user = await this.userRepository.createUser({
+        name,
+        email,
+        cognito_id: sub,
+      });
     }
+
     return user;
   }
 }
