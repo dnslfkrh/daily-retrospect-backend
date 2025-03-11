@@ -8,11 +8,10 @@ export class UserService {
     private readonly userRepository: UserRepository,
   ) { }
 
-  async joinOrAlready(email: string, name: string, google_id: string) {
-    let user = await this.userRepository.findUserByEmail(email);
+  async joinOrAlready(userInfo: NewUserProps) {
+    let user = await this.userRepository.findUserByEmail(userInfo.email);
     if (!user) {
-      const newUser: NewUserProps = { email, name, google_id };
-      user = await this.userRepository.createUser(newUser);
+      user = await this.userRepository.createUser(userInfo);
     }
     return user;
   }
