@@ -39,7 +39,7 @@ export class Retrospect {
 
   // 목표 관련 질문 (목표가 있는 경우만 값이 들어감)
   @Column({ type: 'enum', enum: ['good', 'normal', 'bad'], nullable: true })
-  goal_progress?: 'good' | 'normal' | 'bad'; // 🔵 잘 진행됨 / 🟡 보통 / 🔴 어려움
+  goal_progress?: 'good' | 'normal' | 'bad';
 
   @Column({ type: 'text', nullable: true })
   goal_feedback?: string; // 진행 상태에 따라 이유 기록
