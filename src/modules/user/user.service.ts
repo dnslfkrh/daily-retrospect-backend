@@ -21,4 +21,8 @@ export class UserService {
 
     return user;
   }
+
+  async findByCognitoId(cognito_id: string) {
+    return await this.userRepository.findUserIdByCognitoId(cognito_id);
+  }
 }
