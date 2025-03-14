@@ -1,4 +1,6 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Retrospect } from './retrospect.entity';
+import { Goal } from './goal.entity';
 
 @Entity('users')
 @Index('cognito_id_unique', ['cognito_id'], { unique: true })
@@ -18,4 +20,10 @@ export class User {
 
   @CreateDateColumn()
   created_at: Date;
+
+  @OneToMany(() => Retrospect, (retrospect) => retrospect.user, { cascade: true })
+  retrospects: Retrospect[];
+
+  @OneToMany(() => Goal, (goal) => goal.user, { cascade: true })
+  goals: Goal[];
 }
