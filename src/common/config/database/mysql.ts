@@ -11,7 +11,7 @@ export const mysqlConfig: TypeOrmModuleOptions = {
   username: DB_USER,
   password: DB_PASSWORD,
   database: DB_DATABASE,
-  synchronize: false,
+  synchronize: true,
   charset: 'utf8mb4',
   // dropSchema: false,
   entities: [
