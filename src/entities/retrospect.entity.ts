@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, Index, ManyToMany, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { User } from "./user.entity";
 import { Goal } from "./goal.entity";
+import { GoalProgress } from "src/common/enums/goal-progress.enum";
 
 @Entity('retrospects')
 @Index('user_data_unique', ['user', 'date'], { unique: true }) // 1일 1회고
@@ -18,7 +19,7 @@ export class Retrospect {
   date: string;
 
   // 1. 오늘의 기분
-  @Column({ type: 'varchar', length: 5 })
+  @Column({ type: 'varchar', length: 255 })
   mood: string;
 
   // 2. 가장 인상깊었던 일
@@ -31,14 +32,14 @@ export class Retrospect {
 
   // 4. 내일의 다짐
   @Column({ type: 'text', nullable: true })
-  resolution: string;
+  lesson: string;
 
   // 5. 오늘의 나에게 한마디
   @Column({ type: 'text', nullable: true })
   comment: string;
 
   // 목표 관련 질문 (목표가 있는 경우만 값이 들어감)
-  @Column({ type: 'enum', enum: ['good', 'normal', 'bad'], nullable: true })
+  @Column({ type: 'enum', enum: GoalProgress, nullable: true })
   goal_progress?: 'good' | 'normal' | 'bad';
 
   @Column({ type: 'text', nullable: true })

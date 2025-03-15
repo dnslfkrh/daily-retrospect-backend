@@ -14,4 +14,29 @@ export class RetrospectService {
     const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
     return await this.retrospectRepository.findTodayRetroSpect(userId);
   }
+
+  async createStep1(user: UserSub, mood: string) {
+    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
+    return await this.retrospectRepository.createStep1(userId, mood);
+  }
+
+  async addStep2(user: UserSub, highlight: string) {
+    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
+    return await this.retrospectRepository.addStep2(userId, highlight);
+  }
+
+  async addStep3(user: UserSub, keywords: string[]) {
+    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
+    return await this.retrospectRepository.addStep3(userId, keywords);
+  }
+
+  async addStep4(user: UserSub, resolution: string) {
+    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
+    return await this.retrospectRepository.addStep4(userId, resolution);
+  }
+
+  async addStep5(user: UserSub, commnet: string) {
+    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
+    return await this.retrospectRepository.addStep5(userId, commnet);
+  }
 }
