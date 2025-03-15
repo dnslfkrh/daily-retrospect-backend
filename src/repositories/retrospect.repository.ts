@@ -32,19 +32,7 @@ export class RetrospectRepository {
     return await this.retrospectRepository.save(newRetrospect);
   }
 
-  async addStep2(id: number, highlight: string): Promise<Retrospect> {
-    const retrospect = await this.findTodayRetroSpect(id);
-
-    if (!retrospect) {
-      throw new NotFoundException("회고가 존재하지 않습니다. 먼저 Step1을 완료하세요.");
-    }
-
-    retrospect.highlight = highlight;
-
-    return await this.retrospectRepository.save(retrospect);
-  }
-
-  async addStep3(id: number, keywords: string[]): Promise<Retrospect> {
+  async addStep2(id: number, keywords: string[]): Promise<Retrospect> {
     const retrospect = await this.findTodayRetroSpect(id);
 
     if (!retrospect) {
@@ -52,28 +40,51 @@ export class RetrospectRepository {
     }
 
     retrospect.keywords = keywords;
+
     return await this.retrospectRepository.save(retrospect);
   }
 
-  async addStep4(id: number, resolution: string): Promise<Retrospect> {
+  async addStep3(id: number, mistake: string): Promise<Retrospect> {
     const retrospect = await this.findTodayRetroSpect(id);
 
     if (!retrospect) {
       throw new NotFoundException("회고가 존재하지 않습니다. 먼저 Step1을 완료하세요.");
     }
 
-    retrospect.lesson = resolution;
+    retrospect.mistake = mistake;
     return await this.retrospectRepository.save(retrospect);
   }
 
-  async addStep5(id: number, comment: string): Promise<Retrospect> {
+  async addStep4(id: number, achievement: string): Promise<Retrospect> {
     const retrospect = await this.findTodayRetroSpect(id);
 
     if (!retrospect) {
       throw new NotFoundException("회고가 존재하지 않습니다. 먼저 Step1을 완료하세요.");
     }
 
-    retrospect.comment = comment;
+    retrospect.achievement = achievement;
+    return await this.retrospectRepository.save(retrospect);
+  }
+
+  async addStep5(id: number, memorable_moment: string): Promise<Retrospect> {
+    const retrospect = await this.findTodayRetroSpect(id);
+
+    if (!retrospect) {
+      throw new NotFoundException("회고가 존재하지 않습니다. 먼저 Step1을 완료하세요.");
+    }
+
+    retrospect.memorable_moment = memorable_moment;
+    return await this.retrospectRepository.save(retrospect);
+  }
+
+  async addStep6(id: number, memorable_interaction: string) {
+    const retrospect = await this.findTodayRetroSpect(id);
+
+    if (!retrospect) {
+      throw new NotFoundException("회고가 존재하지 않습니다. 먼저 Step1을 완료하세요.");
+    }
+
+    retrospect.memorable_interaction = memorable_interaction;
     return await this.retrospectRepository.save(retrospect);
   }
 }

@@ -20,23 +20,27 @@ export class RetrospectController {
   }
 
   @Put('step2')
-  async addStep2(@User() user: UserSub, @Body('highlight') highlight: string) {
-    console.log(highlight);
-    return await this.retrospectService.addStep2(user, highlight);
+  async addStep2(@User() user: UserSub, @Body('keywords') keywords: string[]) {
+    return await this.retrospectService.addStep2(user, keywords);
   }
 
   @Put('step3')
-  async addStep3(@User() user: UserSub, @Body('keywords') keywords: string[]) {
-    return await this.retrospectService.addStep3(user, keywords);
+  async addStep3(@User() user: UserSub, @Body('mistake') mistake: string) {
+    return await this.retrospectService.addStep3(user, mistake);
   }
 
   @Put('step4')
-  async addStep4(@User() user: UserSub, @Body('lesson') resolution: string) {
-    return await this.retrospectService.addStep4(user, resolution);
+  async addStep4(@User() user: UserSub, @Body('achievement') achievement: string) {
+    return await this.retrospectService.addStep4(user, achievement);
   }
 
   @Put('step5')
-  async addStep5(@User() user: UserSub, @Body('comment') commnet: string) {
-    return await this.retrospectService.addStep5(user, commnet);
+  async addStep5(@User() user: UserSub, @Body('memorable_moment') memorable_moment: string) {
+    return await this.retrospectService.addStep5(user, memorable_moment);
+  }
+
+  @Put('step6')
+  async addStep6(@User() user: UserSub, @Body('memorable_interaction') memorable_interaction: string) {
+    return await this.retrospectService.addStep6(user, memorable_interaction);
   }
 }
