@@ -20,23 +20,28 @@ export class RetrospectService {
     return await this.retrospectRepository.createStep1(userId, mood);
   }
 
-  async addStep2(user: UserSub, highlight: string) {
+  async addStep2(user: UserSub, keywords: string[]) {
     const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
-    return await this.retrospectRepository.addStep2(userId, highlight);
+    return await this.retrospectRepository.addStep2(userId, keywords);
   }
 
-  async addStep3(user: UserSub, keywords: string[]) {
+  async addStep3(user: UserSub, mistake: string) {
     const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
-    return await this.retrospectRepository.addStep3(userId, keywords);
+    return await this.retrospectRepository.addStep3(userId, mistake);
   }
 
-  async addStep4(user: UserSub, resolution: string) {
+  async addStep4(user: UserSub, achievement: string) {
     const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
-    return await this.retrospectRepository.addStep4(userId, resolution);
+    return await this.retrospectRepository.addStep4(userId, achievement);
   }
 
-  async addStep5(user: UserSub, commnet: string) {
+  async addStep5(user: UserSub, memorable_moment: string) {
     const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
-    return await this.retrospectRepository.addStep5(userId, commnet);
+    return await this.retrospectRepository.addStep5(userId, memorable_moment);
+  }
+
+  async addStep6(user: UserSub, memorable_interaction: string) {
+    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
+    return await this.retrospectRepository.addStep6(userId, memorable_interaction);
   }
 }

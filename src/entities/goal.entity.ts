@@ -25,7 +25,7 @@ export class Goal {
   @Column({ type: 'boolean', default: false })
   completed: boolean;
 
-  @OneToMany(() => Retrospect, (retrospective) => retrospective.goal)
+  @OneToMany(() => Retrospect, (retrospect) => retrospect.goal)
   retrospects: Retrospect[];
 
   @CreateDateColumn()
