@@ -5,12 +5,14 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/guard/token.guard';
+import { RetrospectModule } from './modules/retrospect/retrospect.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(mysqlConfig),
     AuthModule,
     UserModule,
+    RetrospectModule
   ],
   controllers: [],
   providers: [
@@ -21,4 +23,5 @@ import { JwtAuthGuard } from './modules/auth/guard/token.guard';
     Reflector
   ],
 })
+
 export class App { }
