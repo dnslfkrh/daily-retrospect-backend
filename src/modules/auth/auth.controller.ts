@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Query, Request, Res, UnauthorizedException, UseGuards } from "@nestjs/common";
-import { Response } from "express";
+import { Controller, Get, Post, Query, Req, Res, UnauthorizedException, UseGuards } from "@nestjs/common";
+import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { UserService } from "../user/user.service";
 import { Public } from "src/common/decorators/public.decorator";
@@ -37,6 +37,24 @@ export class AuthController {
     } catch (error) {
       console.error("Cognito callback error:", error);
       throw new UnauthorizedException("Failed to process Cognito Login");
+    }
+  }
+
+  @Public()
+  @Post("refresh")
+  async refreshToken(@Req() req: Request, @Res() res: Response) {
+    try {
+      const refreshToken = req.cookies.refresh_token;
+      if (!refreshToken) {
+        throw new UnauthorizedException("No refresh token found");
+      }
+
+      const tokenData = await this.authService.refreshAccessToken(refreshToken);
+
+      return res.json({ access_token: tokenData.access_token, id_token: tokenData.id_token });
+    } catch (error) {
+      console.error("Failed to refresh access token:", error);
+      throw new UnauthorizedException("Failed to refresh token");
     }
   }
 }
