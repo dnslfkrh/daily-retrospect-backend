@@ -13,7 +13,7 @@ export const mysqlConfig: TypeOrmModuleOptions = {
   database: DB_DATABASE,
   synchronize: true,
   charset: 'utf8mb4',
-  // dropSchema: false,
+  // dropSchema: true,
   entities: [
     User,
     Retrospect,
