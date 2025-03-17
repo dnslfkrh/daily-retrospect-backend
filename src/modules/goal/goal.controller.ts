@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common"
 import { GoalService } from "./goal.service";
 import { UserSub } from "src/common/types/Payload";
 import { User } from "src/common/decorators/user.decorator";
-import { CreateGoalDto, UpdateGoalDto } from "./\bdto/goal.dto";
+import { CreateGoalDto, UpdateGoalDto } from "./dto/goal.dto";
 
 @Controller('goal')
 export class GoalController {

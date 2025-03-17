@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Goal } from "src/entities/goal.entity";
-import { CreateGoalDto, UpdateGoalDto } from "src/modules/goal/\bdto/goal.dto";
+import { CreateGoalDto, UpdateGoalDto } from "src/modules/goal/dto/goal.dto";
 import { Repository } from "typeorm";
 
 @Injectable()
