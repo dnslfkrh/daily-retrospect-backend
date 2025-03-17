@@ -12,6 +12,7 @@ export class RetrospectService {
 
   async getTodayRetroSpect(user: UserSub) {
     const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
+    // TODO: 오늘 해당되는 목표 있는지 확인
     return await this.retrospectRepository.findTodayRetroSpect(userId);
   }
 

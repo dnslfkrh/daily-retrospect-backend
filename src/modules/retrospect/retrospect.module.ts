@@ -5,11 +5,13 @@ import { RetrospectService } from "./retrospect.service";
 import { RetrospectRepository } from "src/repositories/retrospect.repository";
 import { RetrospectController } from "./retrospect.controller";
 import { UserModule } from "../user/user.module";
+import { GoalModule } from "../goal/goal.module";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Retrospect]),
-    UserModule
+    UserModule,
+    GoalModule
   ],
   providers: [
     RetrospectService,

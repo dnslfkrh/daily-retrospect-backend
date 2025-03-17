@@ -22,9 +22,6 @@ export class Goal {
   @Column({ type: 'date' })
   end_date: string; // 목표 종료일
 
-  @Column({ type: 'boolean', default: false })
-  completed: boolean;
-
   @OneToMany(() => Retrospect, (retrospect) => retrospect.goal)
   retrospects: Retrospect[];
 
