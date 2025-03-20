@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "../../user/entity/user.entity";
-import { RetrospectSession } from "src/modules/retrospect/entity/session.entity";
+import { RetrospectSession } from "src/modules/retrospect/entities/session.entity";
 
 @Entity('goals')
 export class Goal {
