@@ -1,15 +1,18 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn } from 'typeorm';
 import { RetrospectQuestion } from './question.entity';
 import { AnswerType } from 'src/common/enums/retrospect.enum';
-import { Goal } from 'src/modules/goal/entitiy/goal.entity';
+import { RetrospectSession } from './session.entity';
 
 @Entity('retrospect_answers')
 export class RetrospectAnswer {
   @PrimaryGeneratedColumn()
   id: number;
 
+  @ManyToOne(() => RetrospectSession, (session) => session.answers, { onDelete: 'CASCADE' })
+  session: RetrospectSession; // 어떤 회고 세션에 속하는지
+
   @ManyToOne(() => RetrospectQuestion, { nullable: true })
-  question: RetrospectQuestion;
+  question: RetrospectQuestion; // 질문 정보
 
   @Column({ type: 'enum', enum: AnswerType })
   answer_type: AnswerType;
@@ -25,9 +28,6 @@ export class RetrospectAnswer {
 
   @Column({ type: 'int', nullable: true })
   score?: number; // 점수형 답변 (1~10)
-
-  @ManyToOne(() => Goal, { nullable: true, onDelete: 'SET NULL' })
-  goal?: Goal; // 특정 목표와 연관된 회고 답변
 
   @CreateDateColumn()
   created_at: Date;
