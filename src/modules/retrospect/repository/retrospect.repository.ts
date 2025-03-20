@@ -2,18 +2,21 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import * as moment from "moment";
-import { RetrospectQuestion } from "../entity/question.entity";
-import { RetrospectSetting } from "../entity/setting.entity";
-import { RetrospectAnswer } from "../entity/answer.entity";
+import { RetrospectQuestion } from "../entities/question.entity";
+import { RetrospectSetting } from "../entities/setting.entity";
+import { RetrospectAnswer } from "../entities/answer.entity";
+import { RetrospectSession } from "../entities/session.entity";
 
 @Injectable()
 export class RetrospectRepository {
   constructor(
     @InjectRepository(RetrospectSetting)
-    private readonly retrospectSettingRepository: Repository<RetrospectSetting>,
+    private readonly settingRepository: Repository<RetrospectSetting>,
+    @InjectRepository(RetrospectSession)
+    private readonly sessionRepository: Repository<RetrospectSession>,
     @InjectRepository(RetrospectQuestion)
-    private readonly retrospectQuestionRepository: Repository<RetrospectQuestion>,
+    private readonly questionRepository: Repository<RetrospectQuestion>,
     @InjectRepository(RetrospectAnswer)
-    private readonly retrospectAnswerRepository: Repository<RetrospectAnswer>
+    private readonly answerRepository: Repository<RetrospectAnswer>
   ) { }
 }

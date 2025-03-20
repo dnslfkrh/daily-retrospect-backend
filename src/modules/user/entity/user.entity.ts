@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { Goal } from '../../goal/entitiy/goal.entity';
-import { RetrospectSetting } from 'src/modules/retrospect/entity/setting.entity';
+import { RetrospectSetting } from 'src/modules/retrospect/entities/setting.entity';
 
 @Entity('users')
 @Index('cognito_id_unique', ['cognito_id'], { unique: true })

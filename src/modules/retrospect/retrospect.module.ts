@@ -5,10 +5,10 @@ import { RetrospectRepository } from "src/modules/retrospect/repository/retrospe
 import { RetrospectController } from "./retrospect.controller";
 import { UserModule } from "../user/user.module";
 import { GoalModule } from "../goal/goal.module";
-import { RetrospectAnswer } from "./entity/answer.entity";
-import { RetrospectQuestion } from "./entity/question.entity";
-import { RetrospectSetting } from "./entity/setting.entity";
-import { RetrospectSession } from "./entity/session.entity";
+import { RetrospectAnswer } from "./entities/answer.entity";
+import { RetrospectQuestion } from "./entities/question.entity";
+import { RetrospectSetting } from "./entities/setting.entity";
+import { RetrospectSession } from "./entities/session.entity";
 
 @Module({
   imports: [

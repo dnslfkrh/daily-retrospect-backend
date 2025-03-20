@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { RetrospectQuestion } from './question.entity';
 import { AnswerType } from 'src/common/enums/retrospect.enum';
 import { RetrospectSession } from './session.entity';
@@ -9,10 +9,10 @@ export class RetrospectAnswer {
   id: number;
 
   @ManyToOne(() => RetrospectSession, (session) => session.answers, { onDelete: 'CASCADE' })
-  session: RetrospectSession; // 어떤 회고 세션에 속하는지
+  session: RetrospectSession;
 
   @ManyToOne(() => RetrospectQuestion, { nullable: true })
-  question: RetrospectQuestion; // 질문 정보
+  question: RetrospectQuestion;
 
   @Column({ type: 'enum', enum: AnswerType })
   answer_type: AnswerType;
@@ -29,6 +29,12 @@ export class RetrospectAnswer {
   @Column({ type: 'int', nullable: true })
   score?: number; // 점수형 답변 (1~10)
 
+  @Column({ type: 'boolean', default: false })
+  skipped: boolean; // 건너뛴 질문 여부
+
   @CreateDateColumn()
   created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date; // 답변이 수정될 때마다 자동 갱신
 }
