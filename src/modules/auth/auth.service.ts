@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
-import { UserRepository } from "src/repositories/user.repository";
+import { UserRepository } from "src/modules/user/repository/user.repository";
 import { AWS_COGNITO_CALLBACK_URL, AWS_COGNITO_CLIENT_ID, AWS_COGNITO_CLIENT_SECRET, AWS_COGNITO_DOMAIN, AWS_REGION } from "src/common/config/env/env";
 import axios from "axios";
 
