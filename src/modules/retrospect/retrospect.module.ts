@@ -8,11 +8,13 @@ import { GoalModule } from "../goal/goal.module";
 import { RetrospectAnswer } from "./entity/answer.entity";
 import { RetrospectQuestion } from "./entity/question.entity";
 import { RetrospectSetting } from "./entity/setting.entity";
+import { RetrospectSession } from "./entity/session.entity";
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       RetrospectSetting,
+      RetrospectSession,
       RetrospectQuestion,
       RetrospectAnswer
     ]),

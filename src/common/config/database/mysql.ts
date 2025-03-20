@@ -5,6 +5,7 @@ import { Goal } from "src/modules/goal/entitiy/goal.entity";
 import { RetrospectAnswer } from "src/modules/retrospect/entity/answer.entity";
 import { RetrospectQuestion } from "src/modules/retrospect/entity/question.entity";
 import { RetrospectSetting } from "src/modules/retrospect/entity/setting.entity";
+import { RetrospectSession } from "src/modules/retrospect/entity/session.entity";
 
 export const mysqlConfig: TypeOrmModuleOptions = {
   type: 'mysql',
@@ -15,11 +16,11 @@ export const mysqlConfig: TypeOrmModuleOptions = {
   database: DB_DATABASE,
   synchronize: true,
   charset: 'utf8mb4',
-  dropSchema: false,
   entities: [
     User,
     Goal,
     RetrospectSetting,
+    RetrospectSession,
     RetrospectQuestion,
     RetrospectAnswer
   ]
