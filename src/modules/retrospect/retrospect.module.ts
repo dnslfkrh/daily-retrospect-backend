@@ -1,15 +1,21 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { Retrospect } from "src/entities/retrospect.entity";
 import { RetrospectService } from "./retrospect.service";
-import { RetrospectRepository } from "src/repositories/retrospect.repository";
+import { RetrospectRepository } from "src/modules/retrospect/repository/retrospect.repository";
 import { RetrospectController } from "./retrospect.controller";
 import { UserModule } from "../user/user.module";
 import { GoalModule } from "../goal/goal.module";
+import { RetrospectAnswer } from "./entity/answer.entity";
+import { RetrospectQuestion } from "./entity/question.entity";
+import { RetrospectSetting } from "./entity/setting.entity";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Retrospect]),
+    TypeOrmModule.forFeature([
+      RetrospectSetting,
+      RetrospectQuestion,
+      RetrospectAnswer
+    ]),
     UserModule,
     GoalModule
   ],

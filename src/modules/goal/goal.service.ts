@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { UserSub } from "src/common/types/Payload";
-import { GoalRepository } from "src/repositories/goal.repository";
-import { UserRepository } from "src/repositories/user.repository";
+import { GoalRepository } from "src/modules/goal/repository/goal.repository";
+import { UserRepository } from "src/modules/user/repository/user.repository";
 import { CreateGoalDto, UpdateGoalDto } from "./dto/goal.dto";
 
 @Injectable()

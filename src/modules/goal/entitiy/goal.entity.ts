@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { User } from "./user.entity";
-import { Retrospect } from "./retrospect.entity";
+import { User } from "../../user/entity/user.entity";
+import { RetrospectAnswer } from "src/modules/retrospect/entity/answer.entity";
 
 @Entity('goals')
 export class Goal {
@@ -22,8 +22,8 @@ export class Goal {
   @Column({ type: 'date' })
   end_date: string; // 목표 종료일
 
-  @OneToMany(() => Retrospect, (retrospect) => retrospect.goal)
-  retrospects: Retrospect[];
+  @OneToMany(() => RetrospectAnswer, (answer) => answer.goal)
+  retrospectAnswers: RetrospectAnswer[];
 
   @CreateDateColumn()
   created_at: Date;
