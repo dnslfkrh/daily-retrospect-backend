@@ -17,3 +17,9 @@ export enum AnswerType {
   MULTI_CHOICE = 'multi_choice',  // 다중 선택형 (배열, 키워드 여러 개 선택)
   SCORE = 'score'  // 점수형 (1~10점 스크롤 입력)
 }
+
+export const CONCEPT_RATIOS: Record<RetrospectVolume, [number, number, number]> = {
+  [RetrospectVolume.LIGHT]: [2, 1, 1],
+  [RetrospectVolume.STANDARD]: [3, 1, 1],
+  [RetrospectVolume.DEEP]: [4, 1, 1],
+};

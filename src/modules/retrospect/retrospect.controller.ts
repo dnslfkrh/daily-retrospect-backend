@@ -19,4 +19,9 @@ export class RetrospectController {
   async setSetting(@User() user: UserSub, @Body() setting: RetrospectSettingDto) {
     return await this.retrospectService.setSetting(user, setting);
   }
+
+  @Get('session')
+  async getSession(@User() user: UserSub) {
+    return await this.retrospectService.findOrCreateSession(user);
+  }
 }

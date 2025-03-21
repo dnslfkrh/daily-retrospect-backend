@@ -1,12 +1,13 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
+import { Raw, Repository } from "typeorm";
 import * as moment from "moment";
 import { RetrospectQuestion } from "../entities/question.entity";
 import { RetrospectSetting } from "../entities/setting.entity";
 import { RetrospectAnswer } from "../entities/answer.entity";
 import { RetrospectSession } from "../entities/session.entity";
 import { RetrospectSettingDto } from "../dto/setting.dto";
+import { RetrospectConcept, RetrospectVolume } from "../enums/retrospect.enum";
 
 @Injectable()
 export class RetrospectRepository {
@@ -21,22 +22,75 @@ export class RetrospectRepository {
     private readonly answerRepository: Repository<RetrospectAnswer>
   ) { }
 
-  async getSetting(userId: number) {
-    const user = { id: userId };
-    return await this.settingRepository.findOne({
-      where: { user },
-    });
+  async findSetting(userId: number): Promise<RetrospectSettingDto> {
+    const setting = await this.settingRepository.findOne({ where: { user: { id: userId } } });
+
+    if (!setting) {
+      return { concept: RetrospectConcept.EVENT, volume: RetrospectVolume.STANDARD };
+    }
+
+    return {
+      concept: setting.concept,
+      volume: setting.volume,
+    };
   }
 
   async setSetting(userId: number, settingDto: RetrospectSettingDto) {
-    const user = { id: userId };
-    const existSetting = await this.settingRepository.findOne({ where: { user } });
+    let existingSetting = await this.settingRepository.findOne({ where: { user: { id: userId } } });
 
-    if (existSetting) {
-      await this.settingRepository.update({ user }, settingDto);
-      return await this.settingRepository.findOne({ where: { user } });
+    if (existingSetting) {
+      await this.settingRepository.update(existingSetting.id, settingDto);
+    } else {
+      existingSetting = this.settingRepository.create({ ...settingDto, user: { id: userId } });
+      await this.settingRepository.save(existingSetting);
     }
 
-    return await this.settingRepository.save({ ...settingDto, user });
+    return existingSetting;
+  }
+
+  async findSessionByDate(userId: number, date: string) {
+    return this.sessionRepository.findOne({
+      where: {
+        user: { id: userId },
+        created_at: Raw(alias => `DATE(${alias}) = :date`, { date }),
+      },
+      relations: ['answers', 'questions'],
+    });
+  }
+
+  async createSession(userId: number) {
+    const newSession = this.sessionRepository.create({ user: { id: userId } });
+    return this.sessionRepository.save(newSession);
+  }
+
+  async findCommonQuestion() {
+    return this.questionRepository
+      .createQueryBuilder('question')
+      .where('question.concept = :concept', { concept: RetrospectConcept.COMMON })
+      .orderBy('RAND()')
+      .getOne();
+  }
+
+  async findQuestionsByConcept(concept: string, limit: number) {
+    return this.questionRepository
+      .createQueryBuilder('question')
+      .where('question.concept = :concept', { concept })
+      .orderBy('RAND()')
+      .limit(limit)
+      .getMany();
+  }
+
+  async saveSessionQuestions(sessionId: number, questions: RetrospectQuestion[]) {
+    const session = await this.sessionRepository.findOne({
+      where: { id: sessionId },
+      relations: ['questions']
+    });
+
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+
+    session.questions = questions;
+    return this.sessionRepository.save(session);
   }
 }

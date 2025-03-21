@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany, ManyToOne } from 'typeorm';
-import { RetrospectConcept, RetrospectVolume } from 'src/common/enums/retrospect.enum';
+import { RetrospectConcept, RetrospectVolume } from 'src/modules/retrospect/enums/retrospect.enum';
 import { User } from 'src/modules/user/entity/user.entity';
 
 @Entity('retrospect_settings')
