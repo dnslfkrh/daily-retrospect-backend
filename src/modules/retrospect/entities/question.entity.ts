@@ -1,4 +1,4 @@
-import { AnswerType, RetrospectConcept } from 'src/common/enums/retrospect.enum';
+import { AnswerType, RetrospectConcept } from 'src/modules/retrospect/enums/retrospect.enum';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('retrospect_questions')

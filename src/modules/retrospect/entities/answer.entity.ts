@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { RetrospectQuestion } from './question.entity';
-import { AnswerType } from 'src/common/enums/retrospect.enum';
+import { AnswerType } from 'src/modules/retrospect/enums/retrospect.enum';
 import { RetrospectSession } from './session.entity';
 
 @Entity('retrospect_answers')

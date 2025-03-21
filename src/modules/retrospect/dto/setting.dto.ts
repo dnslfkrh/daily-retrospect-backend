@@ -1,5 +1,5 @@
 import { IsEnum } from "class-validator";
-import { RetrospectConcept, RetrospectVolume } from "src/common/enums/retrospect.enum";
+import { RetrospectConcept, RetrospectVolume } from "src/modules/retrospect/enums/retrospect.enum";
 
 export class RetrospectSettingDto {
   @IsEnum(RetrospectConcept)
