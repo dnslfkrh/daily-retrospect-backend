@@ -62,4 +62,13 @@ export class GoalRepository {
 
     return await this.goalRepository.remove(goal);
   }
+
+  async findActiveGoals(userId: number): Promise<Goal[]> {
+    return this.goalRepository
+      .createQueryBuilder("goal")
+      .where("goal.user.id = :userId", { userId })
+      .andWhere("goal.start_date <= CURRENT_DATE")
+      .andWhere("goal.end_date >= CURRENT_DATE")
+      .getMany();
+  }
 }
