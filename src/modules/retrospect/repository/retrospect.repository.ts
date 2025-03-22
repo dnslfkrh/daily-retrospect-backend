@@ -8,6 +8,7 @@ import { RetrospectAnswer } from "../entities/answer.entity";
 import { RetrospectSession } from "../entities/session.entity";
 import { RetrospectSettingDto } from "../dto/setting.dto";
 import { RetrospectConcept, RetrospectVolume } from "../enums/retrospect.enum";
+import { Goal } from "src/modules/goal/entitiy/goal.entity";
 
 @Injectable()
 export class RetrospectRepository {
@@ -65,9 +66,12 @@ export class RetrospectRepository {
     });
   }
 
-  async createSession(userId: number) {
-    const newSession = this.sessionRepository.create({ user: { id: userId } });
-    return this.sessionRepository.save(newSession);
+  async createSession(userId: number, activeGoals: Goal[]) {
+    const newSession = this.sessionRepository.create({
+      user: { id: userId },
+      goals: activeGoals
+    });
+    return await this.sessionRepository.save(newSession);
   }
 
   async findCommonQuestion() {
@@ -77,6 +81,13 @@ export class RetrospectRepository {
       .orderBy('RAND()')
       .getOne();
   }
+
+  async findGoalQuestion() {
+    return this.questionRepository
+      .createQueryBuilder('question')
+      .where('question.concept = :concept', { concept: RetrospectConcept.GOAL })
+      .getOne();
+  }  
 
   async findQuestionsByConcept(concept: string, limit: number) {
     return this.questionRepository

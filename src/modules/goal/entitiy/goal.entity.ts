@@ -22,7 +22,7 @@ export class Goal {
   @Column({ type: 'date' })
   end_date: string; // 목표 종료일
 
-  @OneToMany(() => RetrospectSession, (session) => session.goal)
+  @OneToMany(() => RetrospectSession, (session) => session.goals)
   retrospectSessions: RetrospectSession[];
 
   @CreateDateColumn()

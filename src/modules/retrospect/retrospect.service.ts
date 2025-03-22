@@ -7,12 +7,14 @@ import * as moment from "moment";
 import { RetrospectQuestion } from "./entities/question.entity";
 import { CONCEPT_RATIOS, RetrospectVolume } from "./enums/retrospect.enum";
 import { RetrospectAnswerDto } from "./dto/answer.dto";
+import { GoalService } from "../goal/goal.service";
 
 @Injectable()
 export class RetrospectService {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly retrospectRepository: RetrospectRepository
+    private readonly retrospectRepository: RetrospectRepository,
+    private readonly goalService: GoalService
   ) { }
 
   async getSetting(user: UserSub) {
@@ -41,6 +43,7 @@ export class RetrospectService {
   private async createSessionWithQuestions(userId: number) {
     const setting = await this.retrospectRepository.findSetting(userId);
     const concepts = this.getConceptsBySetting(setting);
+    const activeGoals = await this.goalService.getActiveGoals(userId);
 
     const [mainCount, subCount1, subCount2] = CONCEPT_RATIOS[setting.volume as RetrospectVolume];
 
@@ -52,10 +55,20 @@ export class RetrospectService {
         ...await this.retrospectRepository.findQuestionsByConcept(concepts[2], subCount2),
       ]
     );
-    const newSession = await this.retrospectRepository.createSession(userId);
+
+    if (activeGoals.length > 0) {
+      const goalQuestion = await this.retrospectRepository.findGoalQuestion();
+      if (goalQuestion) {
+        questions.push(goalQuestion);
+      }
+    }
+
+    const newSession = await this.retrospectRepository.createSession(userId, activeGoals);
+
     await this.retrospectRepository.saveSessionQuestions(newSession.id, questions);
 
     newSession.questions = questions;
+
     return newSession;
   }
 

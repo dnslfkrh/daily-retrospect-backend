@@ -12,8 +12,9 @@ export class RetrospectSession {
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User; // 회고 작성자
 
-  @ManyToOne(() => Goal, (goal) => goal.retrospectSessions, { nullable: true, onDelete: 'SET NULL' })
-  goal?: Goal; // 특정 목표와 연결된 회고 (없을 수도 있음)
+  @ManyToMany(() => Goal, { eager: true })
+  @JoinTable()
+  goals: Goal[];
 
   @ManyToMany(() => RetrospectQuestion, { eager: true })
   @JoinTable()

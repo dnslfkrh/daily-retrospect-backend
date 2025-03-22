@@ -35,4 +35,8 @@ export class GoalService {
     const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
     return await this.goalRepository.deleteGoal(userId, id);
   }
+
+  async getActiveGoals(userId: number) {
+    return await this.goalRepository.findActiveGoals(userId);
+  }
 }
