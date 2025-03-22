@@ -58,6 +58,13 @@ export class RetrospectRepository {
     });
   }
 
+  async findSessionById(sessionId: number) {
+    return this.sessionRepository.findOne({
+      where: { id: sessionId },
+      relations: ['user'],
+    });
+  }
+
   async createSession(userId: number) {
     const newSession = this.sessionRepository.create({ user: { id: userId } });
     return this.sessionRepository.save(newSession);
@@ -92,5 +99,28 @@ export class RetrospectRepository {
 
     session.questions = questions;
     return this.sessionRepository.save(session);
+  }
+
+  async saveAnswer(sessionId: number, questionId: number, answer: string) {
+    const existingAnswer = await this.answerRepository.findOne({
+      where: { session: { id: sessionId }, question: { id: questionId } },
+      relations: ["session", "question"],
+    });
+
+    if (!existingAnswer) {
+      const newAnswer = this.answerRepository.create({
+        session: { id: sessionId },
+        question: { id: questionId },
+        answer,
+      });
+      return await this.answerRepository.save(newAnswer);
+    }
+
+    if (existingAnswer.answer !== answer) {
+      existingAnswer.answer = answer;
+      return await this.answerRepository.save(existingAnswer);
+    }
+
+    return existingAnswer;
   }
 }
