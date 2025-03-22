@@ -66,10 +66,9 @@ export class RetrospectRepository {
     });
   }
 
-  async createSession(userId: number, activeGoals: Goal[]) {
+  async createSession(userId: number,) {
     const newSession = this.sessionRepository.create({
-      user: { id: userId },
-      goals: activeGoals
+      user: { id: userId }
     });
     return await this.sessionRepository.save(newSession);
   }
@@ -87,7 +86,7 @@ export class RetrospectRepository {
       .createQueryBuilder('question')
       .where('question.concept = :concept', { concept: RetrospectConcept.GOAL })
       .getOne();
-  }  
+  }
 
   async findQuestionsByConcept(concept: string, limit: number) {
     return this.questionRepository
