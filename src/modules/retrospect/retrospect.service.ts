@@ -35,6 +35,16 @@ export class RetrospectService {
       session = await this.createSessionWithQuestions(userId);
     }
 
+    const activeGoals = await this.goalService.getActiveGoals(userId);
+    session.goals = activeGoals;
+
+    if (activeGoals.length > 0) {
+      const goalQuestion = await this.retrospectRepository.findGoalQuestion();
+      if (goalQuestion) {
+        session.questions.push(goalQuestion);
+      }
+    }
+
     console.log(session);
 
     return session;
@@ -43,7 +53,6 @@ export class RetrospectService {
   private async createSessionWithQuestions(userId: number) {
     const setting = await this.retrospectRepository.findSetting(userId);
     const concepts = this.getConceptsBySetting(setting);
-    const activeGoals = await this.goalService.getActiveGoals(userId);
 
     const [mainCount, subCount1, subCount2] = CONCEPT_RATIOS[setting.volume as RetrospectVolume];
 
@@ -56,14 +65,7 @@ export class RetrospectService {
       ]
     );
 
-    if (activeGoals.length > 0) {
-      const goalQuestion = await this.retrospectRepository.findGoalQuestion();
-      if (goalQuestion) {
-        questions.push(goalQuestion);
-      }
-    }
-
-    const newSession = await this.retrospectRepository.createSession(userId, activeGoals);
+    const newSession = await this.retrospectRepository.createSession(userId);
 
     await this.retrospectRepository.saveSessionQuestions(newSession.id, questions);
 
