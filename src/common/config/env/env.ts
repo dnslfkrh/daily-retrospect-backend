@@ -28,5 +28,6 @@ export const {
   AWS_SES_ACCESS_KEY,
   AWS_SES_SECRET_KEY,
   COGNITO_JWT_PUBLIC_KEY_URL,
-
+  OPENAI_API_KEY
+  
 } = process.env;

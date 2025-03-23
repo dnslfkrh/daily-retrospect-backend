@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Goal } from "src/modules/goal/entity/goal.entity";
 import { CreateGoalDto, UpdateGoalDto } from "src/modules/goal/dto/goal.dto";
 import { Repository } from "typeorm";
+import { Goal } from "../entity/goal.entity";
+import * as moment from 'moment';
 
 @Injectable()
 export class GoalRepository {
@@ -63,12 +64,14 @@ export class GoalRepository {
     return await this.goalRepository.remove(goal);
   }
 
-  async findActiveGoals(userId: number): Promise<Goal[]> {
+  async findActiveGoals(userId: number, targetDate: string): Promise<Goal[]> {
+    const date = targetDate ? moment(targetDate).startOf('day') : moment().startOf('day');
+    
     return this.goalRepository
       .createQueryBuilder("goal")
       .where("goal.user.id = :userId", { userId })
-      .andWhere("goal.start_date <= CURRENT_DATE")
-      .andWhere("goal.end_date >= CURRENT_DATE")
+      .andWhere("goal.start_date <= :date", { date: date.toISOString() })
+      .andWhere("goal.end_date >= :date", { date: date.toISOString() })
       .getMany();
   }
 }
