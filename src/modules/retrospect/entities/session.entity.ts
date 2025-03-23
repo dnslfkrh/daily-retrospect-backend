@@ -13,11 +13,11 @@ export class RetrospectSession {
   user: User; // 회고 작성자
 
   @ManyToMany(() => Goal, { eager: true })
-  @JoinTable({ name: 'retrospect_sessions_goals' })
+  @JoinTable({ name: 'join_retrospect_sessions_goals' })
   goals: Goal[];
 
   @ManyToMany(() => RetrospectQuestion, { eager: true })
-  @JoinTable({ name: 'retrospect_sessions_questions' })
+  @JoinTable({ name: 'join_retrospect_sessions_questions' })
   questions: RetrospectQuestion[];
 
   @OneToMany(() => RetrospectAnswer, (answer) => answer.session, { cascade: true })
