@@ -20,7 +20,7 @@ export class CronScheduler implements OnModuleInit {
     });
 
     /* 전날 회고 AI 분석 */
-    Cron.schedule('11 16 * * *', async () => {
+    Cron.schedule('16 16 * * *', async () => {
       const retrospect = await this.retrospectService.getYesterdayAnswers();
       console.log("정리된 데이터", JSON.stringify(retrospect, null, 2), "데이터 끝");
     })
