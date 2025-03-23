@@ -7,14 +7,18 @@ import { APP_GUARD, Reflector } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/guard/token.guard';
 import { RetrospectModule } from './modules/retrospect/retrospect.module';
 import { GoalModule } from './modules/goal/goal.module';
+import { ReminderModule } from './modules/reminder/reminder.module';
+import { CronModule } from './modules/\bcron/cron.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(mysqlConfig),
+    CronModule,
     AuthModule,
     UserModule,
     RetrospectModule,
-    GoalModule
+    GoalModule,
+    ReminderModule
   ],
   controllers: [],
   providers: [

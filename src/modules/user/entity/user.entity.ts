@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
-import { Goal } from '../../goal/entitiy/goal.entity';
+import { Goal } from '../../goal/entity/goal.entity';
 import { RetrospectSetting } from 'src/modules/retrospect/entities/setting.entity';
 
 @Entity('users')

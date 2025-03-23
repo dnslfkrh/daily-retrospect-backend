@@ -1,7 +1,7 @@
 import { TypeOrmModuleOptions } from "@nestjs/typeorm";
 import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from "../env/env";
 import { User } from "src/modules/user/entity/user.entity";
-import { Goal } from "src/modules/goal/entitiy/goal.entity";
+import { Goal } from "src/modules/goal/entity/goal.entity";
 import { RetrospectAnswer } from "src/modules/retrospect/entities/answer.entity";
 import { RetrospectQuestion } from "src/modules/retrospect/entities/question.entity";
 import { RetrospectSetting } from "src/modules/retrospect/entities/setting.entity";
@@ -16,6 +16,7 @@ export const mysqlConfig: TypeOrmModuleOptions = {
   database: DB_DATABASE,
   synchronize: true,
   charset: 'utf8mb4',
+  // logging: true,
   entities: [
     User,
     Goal,

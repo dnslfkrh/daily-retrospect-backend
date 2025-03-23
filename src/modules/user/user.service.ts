@@ -1,10 +1,12 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { UserRepository } from "src/modules/user/repository/user.repository";
+import { ReminderService } from "../reminder/reminder.service";
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
+    private readonly reminderService: ReminderService
   ) { }
 
   async joinOrAlready(userInfo: { sub: string; name: string; email: string }) {
@@ -24,5 +26,14 @@ export class UserService {
 
   async findByCognitoId(cognito_id: string) {
     return await this.userRepository.findUserIdByCognitoId(cognito_id);
+  }
+
+  async sendRemindersToInactiveUsers(days: number) {
+    console.log('Sending reminders to inactive users...');
+    const inactiveUsers = await this.userRepository.findInactiveUsers(days);
+
+    for (const user of inactiveUsers) {
+      await this.reminderService.sendReminderEmail(user.email, user.name);
+    }
   }
 }
