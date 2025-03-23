@@ -3,6 +3,7 @@ import { UserSub } from "src/common/types/Payload";
 import { GoalRepository } from "src/modules/goal/repository/goal.repository";
 import { UserRepository } from "src/modules/user/repository/user.repository";
 import { CreateGoalDto, UpdateGoalDto } from "./dto/goal.dto";
+import * as moment from "moment";
 
 @Injectable()
 export class GoalService {
@@ -36,7 +37,7 @@ export class GoalService {
     return await this.goalRepository.deleteGoal(userId, id);
   }
 
-  async getActiveGoals(userId: number) {
-    return await this.goalRepository.findActiveGoals(userId);
+  async getActiveGoals(userId: number, date: string) {
+    return await this.goalRepository.findActiveGoals(userId, date);
   }
 }

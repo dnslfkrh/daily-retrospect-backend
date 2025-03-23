@@ -36,7 +36,7 @@ export class RetrospectService {
       session = await this.createSessionWithQuestions(userId);
     }
 
-    const activeGoals = await this.goalService.getActiveGoals(userId);
+    const activeGoals = await this.goalService.getActiveGoals(userId, moment().format('YYYY-MM-DD'));
     session.goals = activeGoals;
 
     if (activeGoals.length > 0) {
@@ -99,5 +99,48 @@ export class RetrospectService {
     }
 
     return await this.retrospectRepository.saveAnswer(session.id, questionId, answer);
+  }
+
+  async getYesterdayAnswers() {
+    const sessionIds = await this.retrospectRepository.findYesterdayAnswers();
+
+    if (sessionIds.length === 0) {
+      return [];
+    }
+
+    const detailedSessions = [];
+    for (const sessionId of sessionIds) {
+      const session = await this.getSessionDetail(sessionId);
+      if (!session) continue;
+
+      const activeGoals = await this.getActiveGoals(session.user.id);
+      const sessionData = this.formatSessionData(session, activeGoals);
+
+      if (sessionData.answers.length > 0) {
+        detailedSessions.push(sessionData);
+      }
+    }
+
+    return detailedSessions;
+  }
+
+  private async getSessionDetail(sessionId: number) {
+    return this.retrospectRepository.findSessionDetailByIdWithOutUser(sessionId);
+  }
+
+  private async getActiveGoals(userId: number) {
+    return this.goalService.getActiveGoals(userId, moment().format('YYYY-MM-DD'));
+  }
+
+  private formatSessionData(session: any, activeGoals: any[]) {
+    return {
+      userId: session.user.id,
+      sessionId: session.id,
+      answers: session.answers.map(answer => ({
+        question: answer.question.question_text,
+        answer: answer.answer,
+      })),
+      activeGoals: activeGoals.map(goal => goal.title),
+    };
   }
 }

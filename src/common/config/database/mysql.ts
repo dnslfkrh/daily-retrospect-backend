@@ -6,6 +6,7 @@ import { RetrospectAnswer } from "src/modules/retrospect/entities/answer.entity"
 import { RetrospectQuestion } from "src/modules/retrospect/entities/question.entity";
 import { RetrospectSetting } from "src/modules/retrospect/entities/setting.entity";
 import { RetrospectSession } from "src/modules/retrospect/entities/session.entity";
+import { RetrospectSummary } from "src/modules/summary/ai/entity/summary.entity";
 
 export const mysqlConfig: TypeOrmModuleOptions = {
   type: 'mysql',
@@ -23,6 +24,7 @@ export const mysqlConfig: TypeOrmModuleOptions = {
     RetrospectSetting,
     RetrospectSession,
     RetrospectQuestion,
-    RetrospectAnswer
+    RetrospectAnswer,
+    RetrospectSummary
   ]
 };

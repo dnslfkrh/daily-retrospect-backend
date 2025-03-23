@@ -8,7 +8,8 @@ import { JwtAuthGuard } from './modules/auth/guard/token.guard';
 import { RetrospectModule } from './modules/retrospect/retrospect.module';
 import { GoalModule } from './modules/goal/goal.module';
 import { ReminderModule } from './modules/reminder/reminder.module';
-import { CronModule } from './modules/\bcron/cron.module';
+import { CronModule } from './modules/cron/cron.module';
+import { SummaryModule } from './modules/summary/summary.module';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { CronModule } from './modules/\bcron/cron.module';
     UserModule,
     RetrospectModule,
     GoalModule,
-    ReminderModule
+    ReminderModule,
+    SummaryModule
   ],
   controllers: [],
   providers: [
