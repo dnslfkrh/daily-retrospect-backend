@@ -51,10 +51,13 @@ export class RetrospectRepository {
   }
 
   async findSessionByDate(userId: number, date: string) {
+    const startOfDay = moment(date).startOf('day').toISOString();
+    const endOfDay = moment(date).endOf('day').toISOString();
+
     return this.sessionRepository.findOne({
       where: {
         user: { id: userId },
-        created_at: Raw(alias => `DATE(${alias}) = :date`, { date }),
+        created_at: Raw(alias => `${alias} BETWEEN :start AND :end`, { start: startOfDay, end: endOfDay }),
       },
       relations: ['answers', 'questions'],
     });

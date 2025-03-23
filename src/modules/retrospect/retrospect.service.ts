@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { UserSub } from "src/common/types/Payload";
 import { RetrospectRepository } from "src/modules/retrospect/repository/retrospect.repository";
 import { UserRepository } from "src/modules/user/repository/user.repository";
@@ -8,6 +8,7 @@ import { RetrospectQuestion } from "./entities/question.entity";
 import { CONCEPT_RATIOS, RetrospectVolume } from "./enums/retrospect.enum";
 import { RetrospectAnswerDto } from "./dto/answer.dto";
 import { GoalService } from "../goal/goal.service";
+import { isSameDay } from "src/common/utils/isSameDay";
 
 @Injectable()
 export class RetrospectService {
@@ -91,6 +92,10 @@ export class RetrospectService {
 
     if (!session || session.user.id !== userId) {
       throw new NotFoundException('No session found');
+    }
+
+    if (!isSameDay(session.created_at, new Date())) {
+      throw new ForbiddenException('Retrospect can only be edited on the same day.');
     }
 
     return await this.retrospectRepository.saveAnswer(session.id, questionId, answer);
