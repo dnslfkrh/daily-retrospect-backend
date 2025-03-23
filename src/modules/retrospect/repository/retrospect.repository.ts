@@ -8,7 +8,8 @@ import { RetrospectAnswer } from "../entities/answer.entity";
 import { RetrospectSession } from "../entities/session.entity";
 import { RetrospectSettingDto } from "../dto/setting.dto";
 import { RetrospectConcept, RetrospectVolume } from "../enums/retrospect.enum";
-import { Goal } from "src/modules/goal/entitiy/goal.entity";
+import { Goal } from "src/modules/goal/entity/goal.entity";
+import { User } from "src/modules/user/entity/user.entity";
 
 @Injectable()
 export class RetrospectRepository {

@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, OneToMany, ManyToMany, JoinTable } from 'typeorm';
 import { User } from 'src/modules/user/entity/user.entity';
 import { RetrospectAnswer } from './answer.entity';
-import { Goal } from 'src/modules/goal/entitiy/goal.entity';
+import { Goal } from 'src/modules/goal/entity/goal.entity';
 import { RetrospectQuestion } from './question.entity';
 
 @Entity('retrospect_sessions')

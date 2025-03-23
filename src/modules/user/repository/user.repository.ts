@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { NewUserProps } from "src/common/types/Props";
+import { RetrospectSession } from "src/modules/retrospect/entities/session.entity";
 import { User } from "src/modules/user/entity/user.entity";
 import { Repository } from "typeorm";
 
@@ -23,5 +24,20 @@ export class UserRepository {
   async findUserIdByCognitoId(sub: string): Promise<number | null> {
     const user = await this.userRepository.findOne({ where: { cognito_id: sub } });
     return user ? user.id : null;
+  }
+
+  async findInactiveUsers(days: number): Promise<{ id: number; name: string; email: string }[]> {
+    return await this.userRepository
+      .createQueryBuilder("user")
+      .leftJoin(
+        RetrospectSession,
+        "session",
+        "session.userId = user.id AND session.created_at >= NOW() - INTERVAL :days DAY",
+        { days }
+      )
+      .where("session.id IS NULL")
+      .andWhere("user.created_at <= NOW() - INTERVAL :minDays DAY", { minDays: days })
+      .select(["user.id", "user.name", "user.email"])
+      .getRawMany();
   }
 }

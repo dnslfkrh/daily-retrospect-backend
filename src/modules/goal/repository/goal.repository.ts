@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Goal } from "src/modules/goal/entitiy/goal.entity";
+import { Goal } from "src/modules/goal/entity/goal.entity";
 import { CreateGoalDto, UpdateGoalDto } from "src/modules/goal/dto/goal.dto";
 import { Repository } from "typeorm";
 

@@ -8,6 +8,7 @@ import { UserService } from '../user/user.service';
 import { ConfigModule } from '@nestjs/config';
 import { JwtStrategy } from './strategy/token.strategy';
 import { JwtAuthGuard } from './guard/token.guard';
+import { ReminderModule } from '../reminder/reminder.module';
 
 @Module({
   imports: [
