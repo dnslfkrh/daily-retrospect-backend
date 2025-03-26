@@ -9,6 +9,7 @@ import { CONCEPT_RATIOS, RetrospectVolume } from "./enums/retrospect.enum";
 import { RetrospectAnswerDto } from "./dto/answer.dto";
 import { GoalService } from "../goal/goal.service";
 import { isSameDay } from "src/common/utils/isSameDay";
+import { RetrospectAnswer } from "./entities/answer.entity";
 
 @Injectable()
 export class RetrospectService {
@@ -46,9 +47,28 @@ export class RetrospectService {
       }
     }
 
-    console.log(session);
+    if (!session.answers) {
+      session.answers = session.questions.map(question => {
+        const answer = new RetrospectAnswer();
+        answer.question = question;
+        answer.answer = "";
+        answer.session = session;
+        return answer;
+      });
+    }
 
-    return session;
+    const transformedSession = {
+      id: session.id,
+      created_at: session.created_at,
+      questions: session.questions,
+      goals: session.goals,
+      answers: session.answers.map(answer => ({
+        question: answer.question,
+        answer: answer.answer,
+      })),
+    };
+
+    return transformedSession;
   }
 
   private async createSessionWithQuestions(userId: number) {
