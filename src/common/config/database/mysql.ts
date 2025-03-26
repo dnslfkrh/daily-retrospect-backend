@@ -26,5 +26,6 @@ export const mysqlConfig: TypeOrmModuleOptions = {
     RetrospectQuestion,
     RetrospectAnswer,
     RetrospectSummary
-  ]
+  ],
+  timezone: '+09:00',
 };

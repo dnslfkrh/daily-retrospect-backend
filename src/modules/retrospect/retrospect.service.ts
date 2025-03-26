@@ -131,7 +131,9 @@ export class RetrospectService {
     const detailedSessions = [];
     for (const sessionId of sessionIds) {
       const session = await this.getSessionDetail(sessionId);
-      if (!session) continue;
+      if (!session) {
+        continue;
+      }
 
       const activeGoals = await this.getActiveGoals(session.user.id);
       const sessionData = this.formatSessionData(session, activeGoals);
