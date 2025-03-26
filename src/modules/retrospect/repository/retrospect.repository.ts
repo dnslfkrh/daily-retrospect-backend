@@ -142,7 +142,7 @@ export class RetrospectRepository {
     const yesterday = moment().subtract(1, 'day');
     const startOfYesterday = yesterday.startOf('day').toISOString();
     const endOfYesterday = yesterday.endOf('day').toISOString();
-  
+
     const sessionIds = await this.sessionRepository
       .createQueryBuilder('session')
       .select('session.id')
@@ -150,10 +150,10 @@ export class RetrospectRepository {
         { start: startOfYesterday, end: endOfYesterday })
       .getMany()
       .then(results => results.map(result => result.id));
-  
+
     return sessionIds;
   }
-  
+
   async findSessionDetailByIdWithOutUser(sessionId: number) {
     return this.sessionRepository.findOne({
       where: { id: sessionId },
