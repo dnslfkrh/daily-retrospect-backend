@@ -17,9 +17,18 @@ export class CronScheduler {
     await this.userService.sendRemindersToInactiveUsers(2);
   }
 
-  @Cron('54 3 * * *')
+  @Cron('53 16 * * *')
   async analyzeRetrospects() {
     const retrospect = await this.retrospectService.getYesterdayAnswers();
-    console.log("정리된 데이터", JSON.stringify(retrospect, null, 2), "데이터 끝");
+
+    const promises = retrospect.map(async (userRetrospect) => {
+      const sessionId = userRetrospect.sessionId;
+      const userId = userRetrospect.userId;
+      const retrospectSummary = await this.aiService.summarizeRetrospect(userRetrospect.answers);
+
+      await this.retrospectService.saveSummary(sessionId, userId, retrospectSummary);
+    });
+
+    await Promise.all(promises);
   }
 }

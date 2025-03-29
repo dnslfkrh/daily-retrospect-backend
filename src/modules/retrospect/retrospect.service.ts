@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { UserSub } from "src/common/types/Payload";
 import { RetrospectRepository } from "src/modules/retrospect/repository/retrospect.repository";
 import { UserRepository } from "src/modules/user/repository/user.repository";
@@ -10,6 +10,7 @@ import { RetrospectAnswerDto } from "./dto/answer.dto";
 import { GoalService } from "../goal/goal.service";
 import { isSameDay } from "src/common/utils/isSameDay";
 import { RetrospectAnswer } from "./entities/answer.entity";
+import { RetrospectSession } from "./entities/session.entity";
 
 @Injectable()
 export class RetrospectService {
@@ -95,15 +96,6 @@ export class RetrospectService {
     return newSession;
   }
 
-  private getConceptsBySetting(setting: RetrospectSettingDto) {
-    const conceptWeights = {
-      'emotion': ['emotion', 'event', 'reflection'],
-      'event': ['event', 'emotion', 'reflection'],
-      'reflection': ['reflection', 'event', 'emotion'],
-    };
-    return conceptWeights[setting.concept] || [];
-  }
-
   async saveAnswer(user: UserSub, sessionId: number, saveAnswerDto: RetrospectAnswerDto) {
     const { questionId, answer } = saveAnswerDto;
 
@@ -135,8 +127,7 @@ export class RetrospectService {
         continue;
       }
 
-      const activeGoals = await this.getActiveGoals(session.user.id);
-      const sessionData = this.formatSessionData(session, activeGoals);
+      const sessionData = this.formatSessionData(session);
 
       if (sessionData.answers.length > 0) {
         detailedSessions.push(sessionData);
@@ -146,23 +137,48 @@ export class RetrospectService {
     return detailedSessions;
   }
 
+  async saveSummary(sessionId: number, userId: number, summary: string) {
+    const session = await this.retrospectRepository.findSessionById(sessionId);
+
+    if (!session) {
+      throw new NotFoundException('Session not found');
+    }
+
+    if (session.user.id !== userId) {
+      throw new UnauthorizedException('You do not have permission to add summary to this session');
+    }
+
+    return await this.retrospectRepository.saveSummary(sessionId, userId, summary);
+  }
+
+
+  private getConceptsBySetting(setting: RetrospectSettingDto) {
+    const conceptWeights = {
+      'emotion': ['emotion', 'event', 'reflection'],
+      'event': ['event', 'emotion', 'reflection'],
+      'reflection': ['reflection', 'event', 'emotion'],
+    };
+    return conceptWeights[setting.concept] || [];
+  }
+
   private async getSessionDetail(sessionId: number) {
-    return this.retrospectRepository.findSessionDetailByIdWithOutUser(sessionId);
+    return await this.retrospectRepository.findSessionDetailByIdWithOutUser(sessionId);
   }
 
-  private async getActiveGoals(userId: number) {
-    return this.goalService.getActiveGoals(userId, moment().format('YYYY-MM-DD'));
-  }
+  // private async getActiveGoals(userId: number) {
+  //   return await this.goalService.getActiveGoals(userId, moment().format('YYYY-MM-DD'));
+  // }
 
-  private formatSessionData(session: any, activeGoals: any[]) {
+  private formatSessionData(session: RetrospectSession) {
     return {
       userId: session.user.id,
       sessionId: session.id,
-      answers: session.answers.map(answer => ({
-        question: answer.question.question_text,
-        answer: answer.answer,
-      })),
-      activeGoals: activeGoals.map(goal => goal.title),
+      answers: session.answers
+        .filter(answer => answer.question.id !== 36)
+        .map(answer => ({
+          question: answer.question.question_text,
+          answer: answer.answer,
+        })),
     };
   }
 }

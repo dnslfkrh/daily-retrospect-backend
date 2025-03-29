@@ -8,8 +8,7 @@ import { RetrospectAnswer } from "../entities/answer.entity";
 import { RetrospectSession } from "../entities/session.entity";
 import { RetrospectSettingDto } from "../dto/setting.dto";
 import { RetrospectConcept, RetrospectVolume } from "../enums/retrospect.enum";
-import { Goal } from "src/modules/goal/entity/goal.entity";
-import { User } from "src/modules/user/entity/user.entity";
+import { RetrospectSummary } from "../entities/summary.entity";
 
 @Injectable()
 export class RetrospectRepository {
@@ -21,7 +20,9 @@ export class RetrospectRepository {
     @InjectRepository(RetrospectQuestion)
     private readonly questionRepository: Repository<RetrospectQuestion>,
     @InjectRepository(RetrospectAnswer)
-    private readonly answerRepository: Repository<RetrospectAnswer>
+    private readonly answerRepository: Repository<RetrospectAnswer>,
+    @InjectRepository(RetrospectSummary)
+    private readonly summaryRepository: Repository<RetrospectSummary>
   ) { }
 
   async findSetting(userId: number): Promise<RetrospectSettingDto> {
@@ -54,7 +55,7 @@ export class RetrospectRepository {
     const startOfDay = moment(date).startOf('day').toISOString();
     const endOfDay = moment(date).endOf('day').toISOString();
 
-    return this.sessionRepository.findOne({
+    return await this.sessionRepository.findOne({
       where: {
         user: { id: userId },
         created_at: Raw(alias => `${alias} BETWEEN :start AND :end`, { start: startOfDay, end: endOfDay }),
@@ -64,7 +65,7 @@ export class RetrospectRepository {
   }
 
   async findSessionById(sessionId: number) {
-    return this.sessionRepository.findOne({
+    return await this.sessionRepository.findOne({
       where: { id: sessionId },
       relations: ['user'],
     });
@@ -78,7 +79,7 @@ export class RetrospectRepository {
   }
 
   async findCommonQuestion() {
-    return this.questionRepository
+    return await this.questionRepository
       .createQueryBuilder('question')
       .where('question.concept = :concept', { concept: RetrospectConcept.COMMON })
       .orderBy('RAND()')
@@ -86,14 +87,14 @@ export class RetrospectRepository {
   }
 
   async findGoalQuestion() {
-    return this.questionRepository
+    return await this.questionRepository
       .createQueryBuilder('question')
       .where('question.concept = :concept', { concept: RetrospectConcept.GOAL })
       .getOne();
   }
 
   async findQuestionsByConcept(concept: string, limit: number) {
-    return this.questionRepository
+    return await this.questionRepository
       .createQueryBuilder('question')
       .where('question.concept = :concept', { concept })
       .orderBy('RAND()')
@@ -112,7 +113,7 @@ export class RetrospectRepository {
     }
 
     session.questions = questions;
-    return this.sessionRepository.save(session);
+    return await this.sessionRepository.save(session);
   }
 
   async saveAnswer(sessionId: number, questionId: number, answer: string) {
@@ -155,9 +156,19 @@ export class RetrospectRepository {
   }
 
   async findSessionDetailByIdWithOutUser(sessionId: number) {
-    return this.sessionRepository.findOne({
+    return await this.sessionRepository.findOne({
       where: { id: sessionId },
       relations: ['answers', 'answers.question', 'questions', 'user', 'goals'],
     });
+  }
+
+  async saveSummary(sessionId: number, userId: number, summary: string) {
+    const newSummary = this.summaryRepository.create({
+      session: { id: sessionId },
+      user: { id: userId },
+      summary
+    });
+
+    return await this.summaryRepository.save(newSummary);
   }
 }
