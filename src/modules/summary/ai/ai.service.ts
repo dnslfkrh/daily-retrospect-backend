@@ -1,6 +1,8 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import OpenAI from "openai";
 import { OPENAI_API_KEY } from "src/common/config/env/env";
+import { PromptLibrary } from "src/common/libs/prompt.library";
+import { RetrospectAnswerProps } from "src/common/types/Props";
 
 @Injectable()
 export class AiService {
@@ -8,31 +10,62 @@ export class AiService {
 
   constructor() {
     this.openai = new OpenAI({
-      apiKey: OPENAI_API_KEY
+      apiKey: OPENAI_API_KEY,
     });
   }
 
-  async summarizeRetrospect(retrospect: string): Promise<string> {
+  private emojiKeywordMap: { [key: string]: { [emoji: string]: string } } = {
+    "오늘의 날씨는?": { "☀️": "맑음", "🌤️": "구름 조금", "⛈️": "천둥번개", "❄️": "눈" },
+    "지금 나의 컨디션은?": { "💪": "에너지가 넘침", "😐": "보통", "😴": "피곤함", "🤒": "몸이 좋지 않음" },
+    "오늘 나의 기분은?": { "😀": "기분이 좋음", "😢": "슬픔", "😡": "화가 남", "😌": "평온함" },
+  };
+
+  private convertEmojiToKeyword(question: string, answer: string): string {
+    const emojiMap = this.emojiKeywordMap[question];
+    if (!emojiMap) return answer;
+
+    return answer
+      .split("")
+      .map((char) => emojiMap[char] || char)
+      .join("");
+  }
+
+  async summarizeRetrospect(retrospectData: RetrospectAnswerProps[]): Promise<string> {
     try {
+      if (!retrospectData || retrospectData.length === 0) {
+        throw new Error('회고 데이터가 없습니다.');
+      }
+
+      let formattedAnswers = "";
+
+      retrospectData.forEach(({ question, answer }) => {
+        if (!answer?.trim()) {
+          return;
+        }
+
+        const convertedAnswer = this.convertEmojiToKeyword(question, answer);
+
+        formattedAnswers += `- 질문: ${question}\n  답변: ${convertedAnswer}\n`;
+      });
+
+      const prompt = PromptLibrary.getRetrospectSummaryPrompt(formattedAnswers);
+
       const response = await this.openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
-            content: "너는 사용자의 회고를 간결하게 요약하는 AI야.",
+            content: PromptLibrary.getAiSystemMessage()
           },
-          {
-            role: "user",
-            content: `회고 내용: "${retrospect}"\n\n한 문장으로 요약해줘.`,
-          },
+          { role: "user", content: prompt },
         ],
-        max_tokens: 100,
+        max_tokens: 150,
       });
 
       return response.choices[0].message.content.trim();
     } catch (error) {
-      console.error("OpenAI API 요청 실패:", error);
-      throw new Error("AI 회고 요약 중 오류가 발생했습니다.");
+      console.error("OpenAI API 요청 실패:", error.response?.data || error.message);
+      throw new InternalServerErrorException("AI 회고 요약 중 오류가 발생했습니다.");
     }
   }
 }

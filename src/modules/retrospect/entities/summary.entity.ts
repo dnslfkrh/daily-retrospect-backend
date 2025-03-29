@@ -1,6 +1,6 @@
 import { RetrospectSession } from 'src/modules/retrospect/entities/session.entity';
 import { User } from 'src/modules/user/entity/user.entity';
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm';
 
 @Entity('retrospect_summary')
 export class RetrospectSummary {
