@@ -32,8 +32,12 @@ export class UserService {
     console.log('Sending reminders to inactive users...');
     const inactiveUsers = await this.userRepository.findInactiveUsers(days);
 
-    for (const user of inactiveUsers) {
-      await this.reminderService.sendReminderEmail(user.email, user.name);
-    }
+    await Promise.all(
+      inactiveUsers
+        .filter(user => user.email && user.email.includes('@'))
+        .map(user =>
+          this.reminderService.sendReminderEmail(user.email.trim(), user.name.trim())
+        )
+    );
   }
 }

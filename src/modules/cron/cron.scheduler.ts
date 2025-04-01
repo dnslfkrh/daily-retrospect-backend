@@ -12,11 +12,13 @@ export class CronScheduler {
     private readonly aiService: AiService
   ) { }
 
-  @Cron('0 19 * * *')
+  /* 리마인드 이메일 */
+  @Cron('55 12 * * *')
   async sendReminderEmails() {
     await this.userService.sendRemindersToInactiveUsers(2);
   }
 
+  /* 회고 AI 요약 */
   @Cron('53 16 * * *')
   async analyzeRetrospects() {
     const retrospect = await this.retrospectService.getYesterdayAnswers();
