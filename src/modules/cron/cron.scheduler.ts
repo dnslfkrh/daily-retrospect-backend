@@ -20,7 +20,7 @@ export class CronScheduler {
   }
 
   /* 회고 AI 요약 */
-  // @Cron('53 16 * * *')
+  @Cron('13 2 * * *')
   async analyzeRetrospects() {
     const retrospect = await this.retrospectService.getYesterdayAnswers();
 
@@ -28,10 +28,13 @@ export class CronScheduler {
       const sessionId = userRetrospect.sessionId;
       const userId = userRetrospect.userId;
       const retrospectSummary = await this.aiService.summarizeRetrospect(userRetrospect.answers);
+      console.log(`AI 요약: ${userId} - ${sessionId} - ${retrospectSummary}`);
 
       await this.retrospectService.saveSummary(sessionId, userId, retrospectSummary);
     });
 
+    console.log('AI 요약 시작');
     await Promise.all(promises);
+    console.log('AI 요약 완료');
   }
 }

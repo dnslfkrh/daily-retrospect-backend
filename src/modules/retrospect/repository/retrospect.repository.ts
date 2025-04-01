@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Raw, Repository } from "typeorm";
+import { Between, Raw, Repository } from "typeorm";
 import * as moment from "moment";
 import { RetrospectQuestion } from "../entities/question.entity";
 import { RetrospectSetting } from "../entities/setting.entity";
@@ -9,6 +9,7 @@ import { RetrospectSession } from "../entities/session.entity";
 import { RetrospectSettingDto } from "../dto/setting.dto";
 import { RetrospectConcept, RetrospectVolume } from "../enums/retrospect.enum";
 import { RetrospectSummary } from "../entities/summary.entity";
+import { subDays } from "date-fns";
 
 @Injectable()
 export class RetrospectRepository {
@@ -166,9 +167,31 @@ export class RetrospectRepository {
     const newSummary = this.summaryRepository.create({
       session: { id: sessionId },
       user: { id: userId },
-      summary
+      summary,
+      created_at: subDays(new Date(), 1)
     });
 
     return await this.summaryRepository.save(newSummary);
+  }
+
+  async findSessionDates(userId: number) {
+    const retrospects = await this.sessionRepository.find({
+      where: { user: { id: userId } },
+      select: ['created_at'],
+      order: { created_at: 'DESC' },
+    });
+
+    return retrospects.map(session => session.created_at);
+  }
+
+  async findSummaryByUserAndDate(userId: number, date: string) {
+    const summary = await this.summaryRepository.findOne({
+      where: {
+        user: { id: userId },
+        created_at: Between(moment(date).startOf('day').toDate(), moment(date).endOf('day').toDate()),
+      },
+    });
+
+    return summary ? summary.summary : null;
   }
 }

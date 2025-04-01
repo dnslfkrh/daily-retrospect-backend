@@ -20,7 +20,11 @@ export class RetrospectAnswer {
   @Column({ type: 'text', nullable: true })
   answer?: string; // 자유 입력형 답변
 
-  @CreateDateColumn()
+  @CreateDateColumn({ 
+    type: 'timestamp', 
+    default: () => 'CURRENT_TIMESTAMP',
+    precision: 0 
+  })
   created_at: Date;
 
   @UpdateDateColumn()
