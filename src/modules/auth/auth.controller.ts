@@ -57,4 +57,19 @@ export class AuthController {
       throw new UnauthorizedException("Failed to refresh token");
     }
   }
+
+  @Public()
+  @Get("cognito/logout")
+  async logout(@Res() res: Response) {
+    try {
+      const logoutUrl = 'http://localhost:3000/auth';
+
+      res.clearCookie("refresh_token", { httpOnly: true, secure: true, sameSite: 'lax' });
+
+      return res.redirect(logoutUrl);
+    } catch (error) {
+      console.error("Logout error:", error);
+      throw new UnauthorizedException("Failed to log out");
+    }
+  }
 }
