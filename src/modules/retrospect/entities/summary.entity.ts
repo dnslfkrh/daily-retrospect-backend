@@ -17,5 +17,5 @@ export class RetrospectSummary {
   summary: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  created_at: Date;
 }

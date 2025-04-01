@@ -8,3 +8,12 @@ export interface NewUserProps {
   name: string;
   cognito_id: string;
 }
+
+export interface UserRetrospectProps {
+  userId: number;
+  sessionId: number;
+  answers: {
+    question: string;
+    answer: string;
+  }[];
+};
