@@ -181,4 +181,14 @@ export class RetrospectService {
         })),
     };
   }
+
+  async getSessionDates(user: UserSub) {
+    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
+    return await this.retrospectRepository.findSessionDates(userId);
+  }
+
+  async getSummary(user: UserSub, date: string) {
+    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
+    return await this.retrospectRepository.findSummaryByUserAndDate(userId, date);
+  }
 }

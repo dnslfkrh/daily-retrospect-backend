@@ -24,5 +24,5 @@ export class RetrospectSession {
   answers: RetrospectAnswer[];
 
   @CreateDateColumn()
-  created_at: Date; // 회고 작성 날짜
+  created_at: Date;
 }

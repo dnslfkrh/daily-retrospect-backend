@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Param, Post, Put } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Put, Query } from "@nestjs/common";
 import { RetrospectService } from "./retrospect.service";
 import { User } from "src/common/decorators/user.decorator";
 import { UserSub } from "src/common/types/Payload";
 import { RetrospectSettingDto } from "./dto/setting.dto";
 import { RetrospectAnswerDto } from "./dto/answer.dto";
+import * as moment from 'moment';
 
 @Controller('retrospect')
 export class RetrospectController {
@@ -33,5 +34,21 @@ export class RetrospectController {
     @Body() saveAnswerDto: RetrospectAnswerDto
   ) {
     return await this.retrospectService.saveAnswer(user, sessionId, saveAnswerDto);
+  }
+
+  @Get('dates')
+  async getSessionDates(@User() user: UserSub) {
+    return await this.retrospectService.getSessionDates(user);
+  }
+
+  @Get('summary')
+  async getSummary(
+    @User() user: UserSub,
+    @Query('date') date: string
+  ) {
+    const kstDateFromClient = moment(date, "ddd MMM DD YYYY HH:mm:ss [GMT]ZZ (z)");
+    const formattedDate = kstDateFromClient.format();
+
+    return await this.retrospectService.getSummary(user, formattedDate);
   }
 }
