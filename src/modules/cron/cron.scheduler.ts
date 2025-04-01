@@ -3,6 +3,7 @@ import { UserService } from '../user/user.service';
 import { AiService } from '../summary/ai/ai.service';
 import { RetrospectService } from '../retrospect/retrospect.service';
 import { Cron } from '@nestjs/schedule';
+import { UserRetrospectProps } from 'src/common/types/Props';
 
 @Injectable()
 export class CronScheduler {
@@ -19,11 +20,11 @@ export class CronScheduler {
   }
 
   /* 회고 AI 요약 */
-  @Cron('53 16 * * *')
+  // @Cron('53 16 * * *')
   async analyzeRetrospects() {
     const retrospect = await this.retrospectService.getYesterdayAnswers();
 
-    const promises = retrospect.map(async (userRetrospect) => {
+    const promises = retrospect.map(async (userRetrospect: UserRetrospectProps) => {
       const sessionId = userRetrospect.sessionId;
       const userId = userRetrospect.userId;
       const retrospectSummary = await this.aiService.summarizeRetrospect(userRetrospect.answers);
