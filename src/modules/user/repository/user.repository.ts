@@ -38,6 +38,6 @@ export class UserRepository {
       .where("session.id IS NULL")
       .andWhere("user.created_at <= NOW() - INTERVAL :minDays DAY", { minDays: days })
       .select(["user.id", "user.name", "user.email"])
-      .getRawMany();
+      .getMany();
   }
 }
