@@ -29,7 +29,6 @@ export class UserService {
   }
 
   async sendRemindersToInactiveUsers(days: number) {
-    console.log('Sending reminders to inactive users...');
     const inactiveUsers = await this.userRepository.findInactiveUsers(days);
 
     await Promise.all(

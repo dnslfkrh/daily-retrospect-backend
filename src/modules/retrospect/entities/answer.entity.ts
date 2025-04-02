@@ -1,7 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { RetrospectQuestion } from './question.entity';
 import { RetrospectSession } from './session.entity';
-import { AnswerType } from '../enums/retrospect.enum';
 
 @Entity('retrospect_answers')
 export class RetrospectAnswer {
@@ -14,16 +13,13 @@ export class RetrospectAnswer {
   @ManyToOne(() => RetrospectQuestion, { nullable: true })
   question: RetrospectQuestion;
 
-  @Column({ type: 'enum', enum: AnswerType })
-  answer_type: AnswerType;
-
   @Column({ type: 'text', nullable: true })
   answer?: string; // 자유 입력형 답변
 
-  @CreateDateColumn({ 
-    type: 'timestamp', 
+  @CreateDateColumn({
+    type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
-    precision: 0 
+    precision: 0
   })
   created_at: Date;
 
