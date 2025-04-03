@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Between, Raw, Repository } from "typeorm";
-import * as moment from "moment";
+import * as moment from "moment-timezone";
 import { RetrospectQuestion } from "../entities/question.entity";
 import { RetrospectSetting } from "../entities/setting.entity";
 import { RetrospectAnswer } from "../entities/answer.entity";
@@ -53,8 +53,8 @@ export class RetrospectRepository {
   }
 
   async findSessionByDate(userId: number, date: string) {
-    const startOfDay = moment(date).startOf('day').toISOString();
-    const endOfDay = moment(date).endOf('day').toISOString();
+    const startOfDay = moment.tz(date, 'Asia/Seoul').startOf('day').format('YYYY-MM-DD HH:mm:ss');
+    const endOfDay = moment.tz(date, 'Asia/Seoul').endOf('day').format('YYYY-MM-DD HH:mm:ss');
 
     return await this.sessionRepository.findOne({
       where: {
@@ -74,8 +74,10 @@ export class RetrospectRepository {
 
   async createSession(userId: number,) {
     const newSession = this.sessionRepository.create({
-      user: { id: userId }
+      user: { id: userId },
+      date: moment().format('YYYY-MM-DD')
     });
+
     return await this.sessionRepository.save(newSession);
   }
 
@@ -141,9 +143,12 @@ export class RetrospectRepository {
   }
 
   async findYesterdayAnswers() {
-    const yesterday = moment().subtract(1, 'day');
-    const startOfYesterday = yesterday.startOf('day').toISOString();
-    const endOfYesterday = yesterday.endOf('day').toISOString();
+    const yesterday = moment().tz('Asia/Seoul').subtract(1, 'day');
+    const startOfYesterday = yesterday.startOf('day').format('YYYY-MM-DD HH:mm:ss');
+    const endOfYesterday = yesterday.endOf('day').format('YYYY-MM-DD HH:mm:ss');
+
+    console.log('startOfYesterday', startOfYesterday);
+    console.log('endOfYesterday', endOfYesterday);
 
     const sessionIds = await this.sessionRepository
       .createQueryBuilder('session')
