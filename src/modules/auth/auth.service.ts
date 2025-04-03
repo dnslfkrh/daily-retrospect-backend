@@ -2,17 +2,26 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
 import { UserRepository } from "src/modules/user/repository/user.repository";
-import { AWS_COGNITO_CALLBACK_URL, AWS_COGNITO_CLIENT_ID, AWS_COGNITO_CLIENT_SECRET, AWS_COGNITO_DOMAIN, AWS_REGION } from "src/common/config/env/env";
-import axios from "axios";
+import { AWS_COGNITO_CALLBACK_URL, AWS_COGNITO_CLIENT_ID, AWS_COGNITO_CLIENT_SECRET, AWS_COGNITO_DOMAIN, AWS_COGNITO_USER_POOL_ID, AWS_REGION, AWS_SES_ACCESS_KEY, AWS_SES_SECRET_KEY } from "src/common/config/env/env";
+import { UserSub } from "src/common/types/Payload";
+import { ChangePasswordDto } from "./dto/password.dto";
+import { AdminGetUserCommand, ChangePasswordCommand, CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
 
 @Injectable()
 export class AuthService {
+  private cognitoClient = new CognitoIdentityProviderClient({
+    region: AWS_REGION,
+    credentials: {
+      accessKeyId: AWS_SES_ACCESS_KEY,
+      secretAccessKey: AWS_SES_SECRET_KEY
+    }
+  });
+
   constructor(
     private readonly httpService: HttpService,
     private readonly userRepository: UserRepository,
   ) { }
 
-  /* Authorization Code로 Access Token 교환 */
   async exchangeCodeForToken(code: string) {
     const tokenUrl = `https://${AWS_COGNITO_DOMAIN}.auth.${AWS_REGION}.amazoncognito.com/oauth2/token`;
 
@@ -27,6 +36,9 @@ export class AuthService {
     data.append("code", code);
     data.append("redirect_uri", redirectUri);
     data.append("client_id", clientId);
+    data.append("scope", "openid profile email aws.cognito.signin.user.admin");
+
+    console.log("Requesting scopes:", data.get("scope"));
 
     try {
       const response = await firstValueFrom(
@@ -45,7 +57,6 @@ export class AuthService {
     }
   }
 
-  /*  cognito access token에서 사용자 정보 가져오기 */
   async getUserInfo(accessToken: string) {
     const userInfoUrl = `https://${AWS_COGNITO_DOMAIN}.auth.${AWS_REGION}.amazoncognito.com/oauth2/userInfo`;
 
@@ -63,7 +74,6 @@ export class AuthService {
     }
   }
 
-  /* 리프레시 토큰 */
   async refreshAccessToken(refreshToken: string) {
     try {
       const tokenUrl = `https://${AWS_COGNITO_DOMAIN}.auth.${AWS_REGION}.amazoncognito.com/oauth2/token`;
@@ -76,6 +86,9 @@ export class AuthService {
       data.append("grant_type", "refresh_token");
       data.append("refresh_token", refreshToken);
       data.append("client_id", clientId);
+      data.append("scope", "openid profile email aws.cognito.signin.user.admin");
+
+      console.log("Requesting scopes refresh:", data.get("scope"));
 
       const response = await firstValueFrom(
         this.httpService.post(tokenUrl, data, {
@@ -90,6 +103,61 @@ export class AuthService {
     } catch (error) {
       console.error("Cognito refresh token error:", error.response?.data || error.message);
       throw new UnauthorizedException("Failed to refresh access token");
+    }
+  }
+
+  async getCognitoUser(user: UserSub) {
+    try {
+      const username = typeof user === "string" ? user : user.sub;
+
+      const command = new AdminGetUserCommand({
+        UserPoolId: AWS_COGNITO_USER_POOL_ID,
+        Username: username,
+      });
+
+      const result = await this.cognitoClient.send(command);
+
+      const attributes = result.UserAttributes?.reduce((acc, attr) => {
+        acc[attr.Name] = attr.Value;
+        return acc;
+      }, {} as Record<string, string>);
+
+      return {
+        username: result.Username,
+        attributes,
+        isSocialUser: Boolean(attributes["identities"]),
+      };
+    } catch (error) {
+      console.error("Failed to get user info from Cognito:", error);
+      throw new UnauthorizedException("Failed to retrieve user information");
+    }
+  }
+
+  async changePassword(user: UserSub, body: ChangePasswordDto, accessToken: string): Promise<void> {
+    const { previousPassword, newPassword } = body;
+
+    try {
+      const userInfo = await this.getCognitoUser(user);
+      if (userInfo.isSocialUser) {
+        throw new UnauthorizedException("소셜 로그인 사용자는 비밀번호를 변경할 수 없습니다.");
+      }
+
+      const command = new ChangePasswordCommand({
+        PreviousPassword: previousPassword,
+        ProposedPassword: newPassword,
+        AccessToken: accessToken,
+      });
+
+      await this.cognitoClient.send(command);
+    } catch (error) {
+      if (error.name === "InvalidPasswordException") {
+        throw new UnauthorizedException(error.message || "Invalid password format");
+      } else if (error.name === "NotAuthorizedException") {
+        throw new UnauthorizedException("기존 비밀번호가 올바르지 않습니다.");
+      } else {
+        console.error("Failed to change password:", error);
+        throw new UnauthorizedException("Failed to change password");
+      }
     }
   }
 }
