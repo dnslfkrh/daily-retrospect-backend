@@ -4,6 +4,7 @@ import { NewUserProps } from "src/common/types/Props";
 import { RetrospectSession } from "src/modules/retrospect/entities/session.entity";
 import { User } from "src/modules/user/entity/user.entity";
 import { Repository } from "typeorm";
+import { InactiveUserProps } from "../types/inactive-user.props";
 
 @Injectable()
 export class UserRepository {
@@ -26,7 +27,7 @@ export class UserRepository {
     return user ? user.id : null;
   }
 
-  async findInactiveUsers(days: number): Promise<{ id: number; name: string; email: string }[]> {
+  async findInactiveUsers(days: number): Promise<InactiveUserProps[]> {
     return await this.userRepository
       .createQueryBuilder("user")
       .leftJoin(

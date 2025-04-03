@@ -1,8 +1,11 @@
-import { Controller, Get, Post, Query, Req, Res, UnauthorizedException, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, Req, Res, UnauthorizedException, UseGuards } from "@nestjs/common";
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { UserService } from "../user/user.service";
 import { Public } from "src/common/decorators/public.decorator";
+import { User } from "src/common/decorators/user.decorator";
+import { UserSub } from "src/common/types/Payload";
+import { ChangePasswordDto } from "./dto/password.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -71,5 +74,26 @@ export class AuthController {
       console.error("Logout error:", error);
       throw new UnauthorizedException("Failed to log out");
     }
+  }
+
+  @Get("user-info")
+  async getUserInfo(@User() user: UserSub) {
+    const userInfo = await this.authService.getCognitoUser(user);
+    return userInfo;
+  }
+
+  @Post("change-password")
+  async changePassword(
+    @User() user: UserSub,
+    @Body() body: ChangePasswordDto,
+    @Req() req: Request
+  ) {
+    const accessToken = req.headers.authorization?.split(" ")[1];
+    if (!accessToken) {
+      throw new UnauthorizedException("Access token is required");
+    }
+
+    await this.authService.changePassword(user, body, accessToken);
+    return { message: "Password changed successfully" };
   }
 }

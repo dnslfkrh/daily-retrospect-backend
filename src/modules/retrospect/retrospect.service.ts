@@ -35,8 +35,6 @@ export class RetrospectService {
     const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
     let session = await this.retrospectRepository.findSessionByDate(userId, moment().format('YYYY-MM-DD'));
 
-    console.log("session", session);
-
     if (!session) {
       session = await this.createSessionWithQuestions(userId);
     }
