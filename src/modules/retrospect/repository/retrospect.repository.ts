@@ -194,4 +194,15 @@ export class RetrospectRepository {
 
     return summary ? summary.summary : null;
   }
+
+  async findGoalEvaluationAnswers(userId: number, startDate: Date, endDate: Date) {
+    return await this.answerRepository
+      .createQueryBuilder("answer")
+      .innerJoinAndSelect("answer.question", "question")
+      .innerJoin("answer.session", "session")
+      .where("session.userId = :userId", { userId })
+      .andWhere("question.is_goal_evaluation = true")
+      .andWhere("answer.created_at BETWEEN :start AND :end", { start: startDate, end: endDate })
+      .getMany();
+  }
 }

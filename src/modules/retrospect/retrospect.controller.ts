@@ -46,9 +46,14 @@ export class RetrospectController {
     @User() user: UserSub,
     @Query('date') date: string
   ) {
-    const kstDateFromClient = moment(date, "ddd MMM DD YYYY HH:mm:ss [GMT]ZZ (z)");
-    const formattedDate = kstDateFromClient.format();
+    return await this.retrospectService.getSummary(user, date);
+  }
 
-    return await this.retrospectService.getSummary(user, formattedDate);
+  @Get("goal-scores")
+  async getGoalScores(
+    @User() user: UserSub,
+    @Query("period") period: string
+  ) {
+    return await this.retrospectService.getGoalEvaluationAnswers(user, period);
   }
 }
