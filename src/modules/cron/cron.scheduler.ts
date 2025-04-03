@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
-import { AiService } from '../summary/ai/ai.service';
+import { AiService } from '../ai/ai.service';
 import { RetrospectService } from '../retrospect/retrospect.service';
 import { Cron } from '@nestjs/schedule';
 import { UserRetrospectProps } from 'src/common/types/Props';

@@ -9,7 +9,7 @@ import { RetrospectModule } from './modules/retrospect/retrospect.module';
 import { GoalModule } from './modules/goal/goal.module';
 import { ReminderModule } from './modules/reminder/reminder.module';
 import { CronModule } from './modules/cron/cron.module';
-import { SummaryModule } from './modules/summary/summary.module';
+import { AiModule } from './modules/ai/ai.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
@@ -22,7 +22,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     RetrospectModule,
     GoalModule,
     ReminderModule,
-    SummaryModule
+    AiModule
   ],
   controllers: [],
   providers: [
