@@ -2,13 +2,13 @@ import { Module } from '@nestjs/common';
 import { UserModule } from '../user/user.module';
 import { CronScheduler } from './cron.scheduler';
 import { RetrospectModule } from '../retrospect/retrospect.module';
-import { SummaryModule } from '../summary/summary.module';
+import { AiModule } from '../ai/ai.module';
 
 @Module({
   imports: [
     UserModule,
     RetrospectModule,
-    SummaryModule
+    AiModule
   ],
   providers: [
     CronScheduler
