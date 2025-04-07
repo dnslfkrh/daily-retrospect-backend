@@ -210,4 +210,15 @@ export class RetrospectRepository {
       .andWhere("answer.created_at BETWEEN :start AND :end", { start: startDate, end: endDate })
       .getMany();
   }
+
+  async findLastSummary(userId: number): Promise<RetrospectSummary | null> {
+    const lastSummary = await this.summaryRepository.findOne({
+      where: {
+        user: { id: userId },
+      },
+      order: { created_at: 'DESC' },
+    });
+
+    return lastSummary ? lastSummary : null;
+  }
 }
