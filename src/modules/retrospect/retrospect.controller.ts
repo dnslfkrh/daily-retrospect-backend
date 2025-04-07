@@ -56,4 +56,9 @@ export class RetrospectController {
   ) {
     return await this.retrospectService.getGoalEvaluationAnswers(user, period);
   }
+
+  @Get("last-summary")
+  async getLastSummary(@User() user: UserSub) {
+    return await this.retrospectService.getLastSummary(user);
+  }
 }

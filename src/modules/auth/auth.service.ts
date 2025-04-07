@@ -38,8 +38,6 @@ export class AuthService {
     data.append("client_id", clientId);
     data.append("scope", "openid profile email aws.cognito.signin.user.admin");
 
-    console.log("Requesting scopes:", data.get("scope"));
-
     try {
       const response = await firstValueFrom(
         this.httpService.post(tokenUrl, data, {
@@ -87,8 +85,6 @@ export class AuthService {
       data.append("refresh_token", refreshToken);
       data.append("client_id", clientId);
       data.append("scope", "openid profile email aws.cognito.signin.user.admin");
-
-      console.log("Requesting scopes refresh:", data.get("scope"));
 
       const response = await firstValueFrom(
         this.httpService.post(tokenUrl, data, {

@@ -244,4 +244,9 @@ export class RetrospectService {
 
     return { startDate, endDate };
   }
+
+  async getLastSummary(user: UserSub) {
+    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
+    return await this.retrospectRepository.findLastSummary(userId);
+  }
 }
