@@ -7,7 +7,7 @@ export class RetrospectSetting {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user) => user.retrospectSettings, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.retrospect_settings, { onDelete: 'CASCADE' })
   user: User;
 
   @Column({ type: 'enum', enum: RetrospectConcept })

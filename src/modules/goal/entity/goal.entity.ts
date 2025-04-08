@@ -23,7 +23,7 @@ export class Goal {
   end_date: string; // 목표 종료일
 
   @OneToMany(() => RetrospectSession, (session) => session.goals)
-  retrospectSessions: RetrospectSession[];
+  retrospect_session: RetrospectSession[];
 
   @CreateDateColumn()
   created_at: Date;

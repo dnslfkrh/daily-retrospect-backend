@@ -23,7 +23,7 @@ export class RetrospectSession {
   questions: RetrospectQuestion[];
 
   @OneToMany(() => RetrospectQuestionUsage, usage => usage.session, { cascade: true })
-  questionUsages: RetrospectQuestionUsage[];
+  question_usage: RetrospectQuestionUsage[];
 
   @OneToMany(() => RetrospectAnswer, (answer) => answer.session, { cascade: true })
   answers: RetrospectAnswer[];

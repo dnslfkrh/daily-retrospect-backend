@@ -16,11 +16,7 @@ export class RetrospectAnswer {
   @Column({ type: 'text', nullable: true })
   answer?: string; // 자유 입력형 답변
 
-  @CreateDateColumn({
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
-    precision: 0
-  })
+  @CreateDateColumn()
   created_at: Date;
 
   @UpdateDateColumn()

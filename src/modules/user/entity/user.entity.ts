@@ -22,7 +22,7 @@ export class User {
   created_at: Date;
 
   @OneToMany(() => RetrospectSetting, (setting) => setting.user, { cascade: true })
-  retrospectSettings: RetrospectSetting[];
+  retrospect_settings: RetrospectSetting[];
 
   @OneToMany(() => Goal, (goal) => goal.user, { cascade: true })
   goals: Goal[];

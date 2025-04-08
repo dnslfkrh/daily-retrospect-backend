@@ -10,12 +10,10 @@ export class RetrospectQuestionUsage {
   id: number;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'user_id' })
   user: User;
 
   // 질문 ID를 인덱스로 관리하여 조회 성능 개선
   @ManyToOne(() => RetrospectQuestion, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'question_id' })
   @Index()
   question: RetrospectQuestion;
 
@@ -26,6 +24,5 @@ export class RetrospectQuestionUsage {
   last_used_at: Date; // 마지막 사용 시각
 
   @ManyToOne(() => RetrospectSession, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'session_id' })
   session: RetrospectSession;
 }
