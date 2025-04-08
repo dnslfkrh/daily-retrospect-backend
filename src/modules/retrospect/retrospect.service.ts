@@ -1,300 +1,56 @@
-import { ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
-import * as moment from "moment";
+import { Injectable } from "@nestjs/common";
 import { UserSub } from "src/common/types/Payload";
-import { RetrospectRepository } from "src/modules/retrospect/repository/retrospect.repository";
-import { UserRepository } from "src/modules/user/repository/user.repository";
-import { RetrospectSettingDto } from "./dto/setting.dto";
-import { RetrospectQuestion } from "./entities/question.entity";
-import { CONCEPT_RATIOS, RetrospectVolume } from "./enums/retrospect.enum";
-import { RetrospectAnswerDto } from "./dto/answer.dto";
-import { GoalService } from "../goal/goal.service";
-import { isSameDay } from "src/common/utils/isSameDay";
-import { RetrospectAnswer } from "./entities/answer.entity";
-import { RetrospectSession } from "./entities/session.entity";
-import { GoalEvaluationPeriod } from "./enums/goal-evaluation-period.enum";
+import { RetrospectSettingDto } from "./dtos/setting.dto";
+import { RetrospectAnswerDto } from "./dtos/answer.dto";
+import { RetrospectSessionService } from "./services/session.service";
+import { RetrospectSettingService } from "./services/setting.service";
+import { RetrospectSummaryService } from "./services/summary.service";
 
 @Injectable()
 export class RetrospectService {
   constructor(
-    private readonly userRepository: UserRepository,
-    private readonly retrospectRepository: RetrospectRepository,
-    private readonly goalService: GoalService
+    private readonly settingService: RetrospectSettingService,
+    private readonly sessionService: RetrospectSessionService,
+    private readonly summaryService: RetrospectSummaryService
   ) { }
 
   async getSetting(user: UserSub) {
-    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
-    const setting = await this.retrospectRepository.findSetting(userId);
-    return setting;
+    return await this.settingService.getSetting(user);
   }
 
   async setSetting(user: UserSub, setting: RetrospectSettingDto) {
-    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
-    const session = await this.retrospectRepository.findSessionByDate(userId, moment().format('YYYY-MM-DD'));
-    if (session) {
-      await this.retrospectRepository.deleteSessionById(session.id);
-    }
-    return await this.retrospectRepository.setSetting(userId, setting);
+    return await this.settingService.setSetting(user, setting);
   }
 
   async findOrCreateSession(user: UserSub) {
-    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
-    const today = moment().format('YYYY-MM-DD');
-
-    let session = await this.retrospectRepository.findSessionByDate(userId, today);
-    if (!session) {
-      session = await this.createSessionWithQuestions(userId);
-    }
-
-    const [activeGoals, goalQuestion] = await Promise.all([
-      this.goalService.getActiveGoals(userId, today),
-      this.retrospectRepository.findGoalQuestion()
-    ]);
-
-    session.goals = activeGoals;
-
-    if (activeGoals.length > 0 && goalQuestion) {
-      session.questions.push(goalQuestion);
-    }
-
-    if (!session.answers) {
-      session.answers = session.questions.map(question => {
-        const answer = new RetrospectAnswer();
-        answer.question = question;
-        answer.answer = "";
-        answer.session = session;
-        return answer;
-      });
-    }
-
-    const transformedSession = {
-      id: session.id,
-      created_at: session.created_at,
-      questions: session.questions,
-      goals: session.goals,
-      answers: session.answers.map(answer => ({
-        question: answer.question,
-        answer: answer.answer,
-      })),
-    };
-
-    return transformedSession;
-  }
-
-  private async createSessionWithQuestions(userId: number) {
-    const setting = await this.retrospectRepository.findSetting(userId);
-    const concepts = this.getConceptsBySetting(setting);
-    const [mainCount, subCount1, subCount2] = CONCEPT_RATIOS[setting.volume as RetrospectVolume];
-
-    const filterPeriodDays = 3;
-
-    const [candidateQuestionsMain, candidateQuestionsSub1, candidateQuestionsSub2, commonQuestion] = await Promise.all([
-      this.retrospectRepository.findFilteredQuestionsByConcept(concepts[0], filterPeriodDays),
-      this.retrospectRepository.findFilteredQuestionsByConcept(concepts[1], filterPeriodDays),
-      this.retrospectRepository.findFilteredQuestionsByConcept(concepts[2], filterPeriodDays),
-      this.retrospectRepository.findCommonQuestion()
-    ]);
-
-    const selectedMain = this.weightedRandomSelect(candidateQuestionsMain, mainCount);
-    const selectedSub1 = this.weightedRandomSelect(candidateQuestionsSub1, subCount1);
-    const selectedSub2 = this.weightedRandomSelect(candidateQuestionsSub2, subCount2);
-
-    const questions: RetrospectQuestion[] = [
-      commonQuestion,
-      ...selectedMain,
-      ...selectedSub1,
-      ...selectedSub2,
-    ];
-
-    const newSession = await this.retrospectRepository.createSession(userId);
-
-    await Promise.all([
-      this.retrospectRepository.saveSessionQuestions(newSession.id, questions),
-      this.retrospectRepository.updateQuestionsUsage(newSession, questions)
-    ]);
-
-    newSession.questions = questions;
-
-    return newSession;
-  }
-
-  // 후보 질문 배열에서 가중치 기반 확률 선택을 수행하는 함수, 각 질문은 사용 이력(없다면 기본 큰 값)을 반영하여 가중치(weight)를 계산하고, total weight 기준 난수로 선택.
-  private weightedRandomSelect(candidates: RetrospectQuestion[], count: number): RetrospectQuestion[] {
-    const selectedQuestions: RetrospectQuestion[] = [];
-    if (!candidates || candidates.length === 0) {
-      return selectedQuestions;
-    }
-    const now = moment();
-
-    const weightedCandidates = candidates.map(q => {
-      // 연결된 사용 이력이 있으면 사용 정보를 참조하고, 없으면 기본값 사용
-      const usageCount = q.usage?.usage_count || 0;
-      const lastUsedAt = q.usage?.last_used_at ? moment(q.usage.last_used_at) : moment().subtract(999, 'days');
-      const daysSinceUsed = now.diff(lastUsedAt, 'days');
-      const weight = daysSinceUsed / (usageCount + 1);
-      return { question: q, weight };
-    });
-
-    // Set을 사용하여 선택된 인덱스 추적
-    const selectedIndices = new Set<number>();
-
-    for (let i = 0; i < count && selectedIndices.size < weightedCandidates.length; i++) {
-      // 아직 선택되지 않은 항목들만 고려
-      let totalWeight = 0;
-      for (let j = 0; j < weightedCandidates.length; j++) {
-        if (!selectedIndices.has(j)) {
-          totalWeight += weightedCandidates[j].weight;
-        }
-      }
-
-      const random = Math.random() * totalWeight;
-      let cumulative = 0;
-      let selectedIndex = -1;
-
-      for (let j = 0; j < weightedCandidates.length; j++) {
-        if (selectedIndices.has(j)) continue;
-
-        cumulative += weightedCandidates[j].weight;
-        if (random <= cumulative) {
-          selectedIndex = j;
-          break;
-        }
-      }
-
-      // 유효한 선택이 있으면 추가
-      if (selectedIndex >= 0) {
-        selectedIndices.add(selectedIndex);
-        const selectedCandidate = weightedCandidates[selectedIndex];
-        selectedQuestions.push(selectedCandidate.question);
-      }
-    }
-
-    return selectedQuestions;
-  }
-
-  private getConceptsBySetting(setting: RetrospectSettingDto) {
-    const conceptWeights = {
-      'emotion': ['emotion', 'event', 'reflection'],
-      'event': ['event', 'emotion', 'reflection'],
-      'reflection': ['reflection', 'event', 'emotion'],
-    };
-    return conceptWeights[setting.concept] || [];
+    return await this.sessionService.findOrCreateSession(user);
   }
 
   async saveAnswer(user: UserSub, sessionId: number, saveAnswerDto: RetrospectAnswerDto) {
-    const { questionId, answer } = saveAnswerDto;
-    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
-    const session = await this.retrospectRepository.findSessionById(sessionId);
-    if (!session || session.user.id !== userId) {
-      throw new NotFoundException('No session found');
-    }
-    if (!isSameDay(session.created_at, new Date())) {
-      throw new ForbiddenException('Retrospect can only be edited on the same day.');
-    }
-    return await this.retrospectRepository.saveAnswer(session.id, questionId, answer);
-  }
-
-  async getYesterdayAnswers() {
-    const sessionIds = await this.retrospectRepository.findYesterdayAnswers();
-    if (sessionIds.length === 0) {
-      return [];
-    }
-    const detailedSessions = [];
-    for (const sessionId of sessionIds) {
-      const session = await this.getSessionDetail(sessionId);
-      if (!session) {
-        continue;
-      }
-      const sessionData = this.formatSessionData(session);
-      if (sessionData.answers.length > 0) {
-        detailedSessions.push(sessionData);
-      }
-    }
-    return detailedSessions;
-  }
-
-  async saveSummary(sessionId: number, userId: number, summary: string) {
-    const session = await this.retrospectRepository.findSessionById(sessionId);
-    if (!session) {
-      throw new NotFoundException('Session not found');
-    }
-    if (session.user.id !== userId) {
-      throw new UnauthorizedException('You do not have permission to add summary to this session');
-    }
-    return await this.retrospectRepository.saveSummary(sessionId, userId, summary);
-  }
-
-  private async getSessionDetail(sessionId: number) {
-    return await this.retrospectRepository.findSessionDetailByIdWithOutUser(sessionId);
-  }
-
-  private formatSessionData(session: RetrospectSession) {
-    return {
-      userId: session.user.id,
-      sessionId: session.id,
-      answers: session.answers
-        .filter(answer => answer.question.id !== 36)
-        .map(answer => ({
-          question: answer.question.question_text,
-          answer: answer.answer,
-        })),
-    };
+    return await this.sessionService.saveAnswer(user, sessionId, saveAnswerDto);
   }
 
   async getSessionDates(user: UserSub) {
-    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
-    return await this.retrospectRepository.findSessionDates(userId);
+    return await this.sessionService.getSessionDates(user);
+  }
+
+  async getYesterdayAnswers() {
+    return await this.sessionService.getYesterdayAnswers();
   }
 
   async getSummary(user: UserSub, date: string) {
-    const formattedDate = date ? moment(date).format() : moment().format();
-    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
-    return await this.retrospectRepository.findSummaryByUserAndDate(userId, formattedDate);
+    return await this.summaryService.getSummary(user, date);
+  }
+
+  async saveSummary(sessionId: number, userId: number, summary: string) {
+    return await this.summaryService.saveSummary(sessionId, userId, summary);
   }
 
   async getGoalEvaluationAnswers(user: UserSub, period: string) {
-    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
-    const { startDate, endDate } = this.getPeriodRange(period);
-    const answers = await this.retrospectRepository.findGoalEvaluationAnswers(userId, startDate, endDate);
-    return answers.map(answer => ({
-      answer: answer.answer,
-      created_at: answer.created_at,
-    }));
-  }
-
-  private getPeriodRange(period: string) {
-    const periodMap: Record<string, GoalEvaluationPeriod> = {
-      "1개월": GoalEvaluationPeriod.OneMonth,
-      "3개월": GoalEvaluationPeriod.ThreeMonths,
-      "6개월": GoalEvaluationPeriod.SixMonths,
-      "1년": GoalEvaluationPeriod.OneYear,
-    };
-    const mappedPeriod = periodMap[period];
-    if (!mappedPeriod) {
-      throw new Error("Invalid period");
-    }
-    const endDate = new Date();
-    let startDate: Date;
-    switch (mappedPeriod) {
-      case GoalEvaluationPeriod.OneMonth:
-        startDate = moment().subtract(1, "months").toDate();
-        break;
-      case GoalEvaluationPeriod.ThreeMonths:
-        startDate = moment().subtract(3, "months").toDate();
-        break;
-      case GoalEvaluationPeriod.SixMonths:
-        startDate = moment().subtract(6, "months").toDate();
-        break;
-      case GoalEvaluationPeriod.OneYear:
-        startDate = moment().subtract(1, "years").toDate();
-        break;
-      default:
-        throw new Error("Invalid period");
-    }
-    return { startDate, endDate };
+    return await this.summaryService.getGoalEvaluationAnswers(user, period);
   }
 
   async getLastSummary(user: UserSub) {
-    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
-    return await this.retrospectRepository.findLastSummary(userId);
+    return await this.summaryService.getLastSummary(user);
   }
 }
