@@ -10,6 +10,7 @@ import { RetrospectQuestion } from "./entities/question.entity";
 import { RetrospectSetting } from "./entities/setting.entity";
 import { RetrospectSession } from "./entities/session.entity";
 import { RetrospectSummary } from "./entities/summary.entity";
+import { RetrospectQuestionUsage } from "./entities/question-usage.entity";
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { RetrospectSummary } from "./entities/summary.entity";
       RetrospectSession,
       RetrospectQuestion,
       RetrospectAnswer,
-      RetrospectSummary
+      RetrospectSummary,
+      RetrospectQuestionUsage
     ]),
     UserModule,
     GoalModule

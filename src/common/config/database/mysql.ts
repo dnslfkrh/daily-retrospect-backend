@@ -7,6 +7,7 @@ import { RetrospectQuestion } from "src/modules/retrospect/entities/question.ent
 import { RetrospectSetting } from "src/modules/retrospect/entities/setting.entity";
 import { RetrospectSession } from "src/modules/retrospect/entities/session.entity";
 import { RetrospectSummary } from "src/modules/retrospect/entities/summary.entity";
+import { RetrospectQuestionUsage } from "src/modules/retrospect/entities/question-usage.entity";
 
 export const mysqlConfig: TypeOrmModuleOptions = {
   type: 'mysql',
@@ -25,7 +26,8 @@ export const mysqlConfig: TypeOrmModuleOptions = {
     RetrospectSession,
     RetrospectQuestion,
     RetrospectAnswer,
-    RetrospectSummary
+    RetrospectSummary,
+    RetrospectQuestionUsage
   ],
   timezone: '+09:00',
 };
