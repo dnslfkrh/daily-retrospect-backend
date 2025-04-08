@@ -4,6 +4,7 @@ import { UserService } from './user.service';
 import { UserRepository } from './repository/user.repository';
 import { User } from './entity/user.entity';
 import { ReminderService } from '../reminder/reminder.service';
+import { UserController } from './user.controller';
 
 @Module({
   imports: [
@@ -18,6 +19,9 @@ import { ReminderService } from '../reminder/reminder.service';
     UserService,
     UserRepository,
     ReminderService
+  ],
+  controllers: [
+    UserController
   ],
 })
 

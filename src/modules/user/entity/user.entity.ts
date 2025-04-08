@@ -26,4 +26,7 @@ export class User {
 
   @OneToMany(() => Goal, (goal) => goal.user, { cascade: true })
   goals: Goal[];
+
+  @Column({ default: false })
+  is_deleted: boolean;
 }

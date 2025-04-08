@@ -1,9 +1,21 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { UserRepository } from "src/modules/user/repository/user.repository";
 import { ReminderService } from "../reminder/reminder.service";
+import { UserSub } from "src/common/types/Payload";
+import { AdminDeleteUserCommand, CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
+import { AWS_COGNITO_USER_POOL_ID, AWS_REGION, AWS_SES_ACCESS_KEY, AWS_SES_SECRET_KEY } from "src/common/config/env/env";
+import { ConfirmDeleteUserDto } from "./dto/email.dto";
 
 @Injectable()
 export class UserService {
+  private cognitoClient = new CognitoIdentityProviderClient({
+    region: AWS_REGION,
+    credentials: {
+      accessKeyId: AWS_SES_ACCESS_KEY,
+      secretAccessKey: AWS_SES_SECRET_KEY
+    }
+  });
+
   constructor(
     private readonly userRepository: UserRepository,
     private readonly reminderService: ReminderService
@@ -38,5 +50,56 @@ export class UserService {
           this.reminderService.sendReminderEmail(user.email.trim(), user.name.trim())
         )
     );
+  }
+
+  async deleteUser(user: UserSub, email: string) {
+    const username = user.sub;
+    if (!username) {
+      throw new UnauthorizedException("Cognito 사용자 삭제 실패");
+    }
+
+    const foundEmail = await this.userRepository.findEmailByCognitoId(username);
+    if (!foundEmail || foundEmail !== email) {
+      throw new BadRequestException("이메일이 일치하지 않습니다.");
+    }
+
+    // 1. DB 사용자 soft-delete 처리
+    try {
+      await this.userRepository.markUserAsDeleted(username);
+    } catch (err) {
+      console.error("DB 사용자 soft-delete 실패", err);
+      throw new InternalServerErrorException("DB 사용자 삭제 실패");
+    }
+
+    // 2. Cognito 사용자 삭제 시도
+    try {
+      await this.cognitoClient.send(
+        new AdminDeleteUserCommand({
+          UserPoolId: AWS_COGNITO_USER_POOL_ID,
+          Username: username,
+        })
+      );
+    } catch (err) {
+      console.error("Cognito 사용자 삭제 실패", err);
+
+      // DB soft-delete 복구 시도
+      try {
+        await this.userRepository.unmarkUserAsDeleted(username);
+      } catch (rollbackErr) {
+        console.error("DB 복원 실패 - 데이터 불일치 가능성 있음", rollbackErr);
+      }
+
+      throw new InternalServerErrorException("Cognito 사용자 삭제 실패. 다시 시도해주세요.");
+    }
+
+    // 3. 모두 성공했을 경우 DB에서 진짜 삭제 (optional)
+    try {
+      await this.userRepository.deleteUserByCognitoId(username);
+    } catch (finalErr) {
+      console.error("최종 DB 사용자 삭제 실패", finalErr);
+      // 이 부분은 로그만 남기고 넘겨도 되고, 알림을 줄 수도 있음
+    }
+
+    return { success: true, message: "회원 탈퇴 성공" };
   }
 }
