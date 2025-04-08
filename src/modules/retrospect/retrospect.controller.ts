@@ -2,8 +2,8 @@ import { Body, Controller, Get, Param, Post, Put, Query } from "@nestjs/common";
 import { RetrospectService } from "./retrospect.service";
 import { User } from "src/common/decorators/user.decorator";
 import { UserSub } from "src/common/types/Payload";
-import { RetrospectSettingDto } from "./dto/setting.dto";
-import { RetrospectAnswerDto } from "./dto/answer.dto";
+import { RetrospectSettingDto } from "./dtos/setting.dto";
+import { RetrospectAnswerDto } from "./dtos/answer.dto";
 import * as moment from 'moment';
 
 @Controller('retrospect')
