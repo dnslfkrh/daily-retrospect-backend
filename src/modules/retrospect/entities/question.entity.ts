@@ -1,5 +1,6 @@
 import { AnswerType, RetrospectConcept } from 'src/modules/retrospect/enums/retrospect.enum';
-import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { RetrospectQuestionUsage } from './question-usage.entity';
 
 @Entity('retrospect_questions')
 export class RetrospectQuestion {
@@ -18,4 +19,7 @@ export class RetrospectQuestion {
   @Column({ type: 'boolean', default: false })
   @Index()
   is_goal_evaluation: boolean; // 목표 질문인지 확인하는 칼럼
+
+  @OneToOne(() => RetrospectQuestionUsage, usage => usage.question)
+  usage: RetrospectQuestionUsage;
 }
