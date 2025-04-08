@@ -78,8 +78,7 @@ export class AuthController {
 
   @Get("user-info")
   async getUserInfo(@User() user: UserSub) {
-    const userInfo = await this.authService.getCognitoUser(user);
-    return userInfo;
+    return await this.authService.getCognitoUser(user);
   }
 
   @Post("change-password")
