@@ -78,6 +78,10 @@ export class RetrospectRepository {
     return await this.sessionRepository.save(newSession);
   }
 
+  async deleteSessionById(sessionId: number) {
+    return await this.sessionRepository.delete(sessionId);
+  }
+
   async findCommonQuestion() {
     return await this.questionRepository
       .createQueryBuilder('question')
