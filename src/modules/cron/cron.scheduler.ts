@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { AiService } from '../ai/ai.service';
 import { RetrospectService } from '../retrospect/retrospect.service';
-import { UserRetrospectProps } from './types/user-retrospect.type';
+// 기존의 UserRetrospectProps 대신, getYesterdayAnswers의 반환 타입에 맞는 타입을 사용합니다.
+import { FormattedYesterdaySession } from '../retrospect/types/retrospect-output.types';
 
 @Injectable()
 export class CronScheduler {
@@ -25,10 +26,18 @@ export class CronScheduler {
 
     const retrospect = await this.retrospectService.getYesterdayAnswers();
 
-    const promises = retrospect.map(async (userRetrospect: UserRetrospectProps) => {
+    const promises = retrospect.map(async (userRetrospect: FormattedYesterdaySession) => {
       const sessionId = userRetrospect.sessionId;
       const userId = userRetrospect.userId;
-      const retrospectSummary = await this.aiService.summarizeRetrospect(userRetrospect.answers);
+
+      const transformedAnswers = userRetrospect.answers.map(answer => ({
+        question: typeof answer.question === 'string'
+          ? answer.question
+          : JSON.stringify(answer.question),
+        answer: String(answer.answer),
+      }));
+
+      const retrospectSummary = await this.aiService.summarizeRetrospect(transformedAnswers);
 
       console.log(`AI 요약 완료: ${retrospectSummary}`);
 
@@ -37,25 +46,25 @@ export class CronScheduler {
 
     await Promise.all(promises);
 
-    console.log('AI 요약 완료');
+    console.log('모든 AI 요약 완료');
   }
 
   // 나중에 성능 비교
   // async analyzeRetrospects2() {
   //   console.log('AI 요약 시작');
-
+  //
   //   const retrospect = await this.retrospectService.getYesterdayAnswers();
-
+  //
   //   for (const userRetrospect of retrospect) {
   //     const sessionId = userRetrospect.sessionId;
   //     const userId = userRetrospect.userId;
   //     const retrospectSummary = await this.aiService.summarizeRetrospect(userRetrospect.answers);
-
+  //
   //     console.log(`AI 요약 완료: ${userId} - ${sessionId} - ${retrospectSummary}`);
-
+  //
   //     await this.retrospectService.saveSummary(sessionId, userId, retrospectSummary);
   //   }
-
-  //   console.log('AI 요약 완료');
+  //
+  //   console.log('모든 AI 요약 완료');
   // }
 }

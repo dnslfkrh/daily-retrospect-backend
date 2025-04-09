@@ -9,17 +9,17 @@ export class RetrospectQuestion {
   id: number;
 
   @Column({ type: 'enum', enum: RetrospectConceptEnum })
-  concept: RetrospectConceptEnum; // 감정/사건/성찰 중심
+  concept: RetrospectConceptEnum;
 
   @Column({ type: 'enum', enum: RetrospectAnswerTypeEnum })
-  answer_type: RetrospectAnswerTypeEnum; // text, single_choice, multi_choice, score
+  answer_type: RetrospectAnswerTypeEnum;
 
   @Column({ type: 'text' })
   question_text: string;
 
   @Column({ type: 'boolean', default: false })
   @Index()
-  is_goal_evaluation: boolean; // 목표 질문인지 확인하는 칼럼
+  is_goal_evaluation: boolean;
 
   @OneToOne(() => RetrospectQuestionUsage, usage => usage.question)
   usage: RetrospectQuestionUsage;
