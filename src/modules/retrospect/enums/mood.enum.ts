@@ -1,4 +1,4 @@
-export enum MoodType {
+export enum MoodTypeEnum {
   HAPPY = 'happy',
   EXCITED = 'excited',
   CONTENT = 'content',

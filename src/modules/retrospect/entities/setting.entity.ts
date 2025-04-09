@@ -1,6 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany, ManyToOne } from 'typeorm';
-import { RetrospectConcept, RetrospectVolume } from 'src/modules/retrospect/enums/retrospect.enum';
 import { User } from 'src/modules/user/entity/user.entity';
+import { RetrospectConceptEnum } from '../enums/retrospect-concept.enum';
+import { RetrospectVolumeEnum } from '../enums/retrospect-volume.enum';
 
 @Entity('retrospect_settings')
 export class RetrospectSetting {
@@ -10,9 +11,9 @@ export class RetrospectSetting {
   @ManyToOne(() => User, (user) => user.retrospect_settings, { onDelete: 'CASCADE' })
   user: User;
 
-  @Column({ type: 'enum', enum: RetrospectConcept })
-  concept: RetrospectConcept; // 감정, 사건, 성찰
+  @Column({ type: 'enum', enum: RetrospectConceptEnum })
+  concept: RetrospectConceptEnum; // 감정, 사건, 성찰
 
-  @Column({ type: 'enum', enum: RetrospectVolume })
-  volume: RetrospectVolume; // 4, 5, 6개 질문 설정
+  @Column({ type: 'enum', enum: RetrospectVolumeEnum })
+  volume: RetrospectVolumeEnum; // 4, 5, 6개 질문 설정
 }

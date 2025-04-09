@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { UserRepository } from "src/modules/user/repository/user.repository";
 import { ReminderService } from "../reminder/reminder.service";
-import { UserSub } from "src/common/types/Payload";
+import { UserSub } from "src/common/types/user-payload.type";
 import { AdminDeleteUserCommand, CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
 import { AWS_COGNITO_USER_POOL_ID, AWS_REGION, AWS_SES_ACCESS_KEY, AWS_SES_SECRET_KEY } from "src/common/config/env/env";
 import { ConfirmDeleteUserDto } from "./dto/email.dto";

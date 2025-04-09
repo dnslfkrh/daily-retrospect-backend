@@ -4,7 +4,7 @@ import { AuthService } from "./auth.service";
 import { UserService } from "../user/user.service";
 import { Public } from "src/common/decorators/public.decorator";
 import { User } from "src/common/decorators/user.decorator";
-import { UserSub } from "src/common/types/Payload";
+import { UserSub } from "src/common/types/user-payload.type";
 import { ChangePasswordDto } from "./dto/password.dto";
 
 @Controller("auth")

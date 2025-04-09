@@ -2,14 +2,15 @@ import { Injectable } from "@nestjs/common";
 import * as moment from "moment";
 import { RetrospectSettingDto } from "../dtos/setting.dto";
 import { RetrospectQuestion } from "../entities/question.entity";
-import { CONCEPT_RATIOS, RetrospectVolume } from "../enums/retrospect.enum";
 import { RetrospectQuestionRepository } from "../repositories/question.repository";
+import { RetrospectVolumeEnum } from "../enums/retrospect-volume.enum";
+import { CONCEPT_RATIOS } from "../constant/retrospect.constant";
 
 @Injectable()
 export class RetrospectQuestionService {
   constructor(
     private readonly questionRepository: RetrospectQuestionRepository
-  ) {}
+  ) { }
 
   async findGoalQuestion() {
     return await this.questionRepository.findGoalQuestion();
@@ -17,7 +18,7 @@ export class RetrospectQuestionService {
 
   async selectQuestionsForSession(setting: RetrospectSettingDto, userId: number) {
     const concepts = this.getConceptsBySetting(setting);
-    const [mainCount, subCount1, subCount2] = CONCEPT_RATIOS[setting.volume as RetrospectVolume];
+    const [mainCount, subCount1, subCount2] = CONCEPT_RATIOS[setting.volume as RetrospectVolumeEnum];
     const filterPeriodDays = 3;
 
     const [candidateQuestionsMain, candidateQuestionsSub1, candidateQuestionsSub2, commonQuestion] = await Promise.all([

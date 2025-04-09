@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { UserSub } from "src/common/types/Payload";
+import { UserSub } from "src/common/types/user-payload.type";
 import { GoalRepository } from "src/modules/goal/repository/goal.repository";
 import { UserRepository } from "src/modules/user/repository/user.repository";
 import { CreateGoalDto, UpdateGoalDto } from "./dto/goal.dto";
