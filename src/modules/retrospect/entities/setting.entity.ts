@@ -12,8 +12,8 @@ export class RetrospectSetting {
   user: User;
 
   @Column({ type: 'enum', enum: RetrospectConceptEnum })
-  concept: RetrospectConceptEnum; // 감정, 사건, 성찰
+  concept: RetrospectConceptEnum;
 
   @Column({ type: 'enum', enum: RetrospectVolumeEnum })
-  volume: RetrospectVolumeEnum; // 4, 5, 6개 질문 설정
+  volume: RetrospectVolumeEnum;
 }

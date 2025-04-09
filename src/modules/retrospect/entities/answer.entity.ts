@@ -14,11 +14,11 @@ export class RetrospectAnswer {
   question: RetrospectQuestion;
 
   @Column({ type: 'text', nullable: true })
-  answer?: string; // 자유 입력형 답변
+  answer?: string | number | string[] | number[];
 
   @CreateDateColumn()
   created_at: Date;
 
   @UpdateDateColumn()
-  updated_at: Date; // 답변이 수정될 때마다 자동 갱신
+  updated_at: Date;
 }
