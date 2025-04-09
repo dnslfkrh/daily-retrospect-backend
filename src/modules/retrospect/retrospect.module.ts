@@ -49,16 +49,7 @@ import { RetrospectSummaryRepository } from "./repositories/summary.repository";
     RetrospectController
   ],
   exports: [
-    RetrospectService,
-    RetrospectQuestionService,
-    RetrospectSessionService,
-    RetrospectSettingService,
-    RetrospectSummaryService,
-    RetrospectAnswerRepository,
-    RetrospectQuestionRepository,
-    RetrospectSessionRepository,
-    RetrospectSettingRepository,
-    RetrospectSummaryRepository
+    RetrospectService
   ]
 })
 

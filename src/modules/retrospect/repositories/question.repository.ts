@@ -2,9 +2,9 @@ import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import * as moment from "moment";
-import { RetrospectConcept } from "../enums/retrospect.enum";
 import { RetrospectQuestion } from "../entities/question.entity";
 import { RetrospectQuestionUsage } from "../entities/question-usage.entity";
+import { RetrospectConceptEnum } from "../enums/retrospect-concept.enum";
 
 @Injectable()
 export class RetrospectQuestionRepository {
@@ -13,12 +13,12 @@ export class RetrospectQuestionRepository {
     private readonly questionRepository: Repository<RetrospectQuestion>,
     @InjectRepository(RetrospectQuestionUsage)
     private readonly questionUsageRepository: Repository<RetrospectQuestionUsage>
-  ) {}
+  ) { }
 
   async findCommonQuestion() {
     return await this.questionRepository
       .createQueryBuilder('question')
-      .where('question.concept = :concept', { concept: RetrospectConcept.COMMON })
+      .where('question.concept = :concept', { concept: RetrospectConceptEnum.COMMON })
       .orderBy('RAND()')
       .getOne();
   }
@@ -26,7 +26,7 @@ export class RetrospectQuestionRepository {
   async findGoalQuestion() {
     return await this.questionRepository
       .createQueryBuilder('question')
-      .where('question.concept = :concept', { concept: RetrospectConcept.GOAL })
+      .where('question.concept = :concept', { concept: RetrospectConceptEnum.GOAL })
       .getOne();
   }
 

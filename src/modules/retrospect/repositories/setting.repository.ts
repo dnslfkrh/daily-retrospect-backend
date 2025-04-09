@@ -1,21 +1,22 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { RetrospectConcept, RetrospectVolume } from "../enums/retrospect.enum";
 import { RetrospectSettingDto } from "../dtos/setting.dto";
 import { RetrospectSetting } from "../entities/setting.entity";
+import { RetrospectConceptEnum } from "../enums/retrospect-concept.enum";
+import { RetrospectVolumeEnum } from "../enums/retrospect-volume.enum";
 
 @Injectable()
 export class RetrospectSettingRepository {
   constructor(
     @InjectRepository(RetrospectSetting)
     private readonly settingRepository: Repository<RetrospectSetting>
-  ) {}
+  ) { }
 
   async findSetting(userId: number): Promise<RetrospectSettingDto> {
     const setting = await this.settingRepository.findOne({ where: { user: { id: userId } } });
     if (!setting) {
-      return { concept: RetrospectConcept.EVENT, volume: RetrospectVolume.STANDARD };
+      return { concept: RetrospectConceptEnum.EVENT, volume: RetrospectVolumeEnum.STANDARD };
     }
     return {
       concept: setting.concept,

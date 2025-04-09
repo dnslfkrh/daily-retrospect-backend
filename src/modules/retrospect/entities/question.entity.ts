@@ -1,17 +1,18 @@
-import { AnswerType, RetrospectConcept } from 'src/modules/retrospect/enums/retrospect.enum';
 import { Column, Entity, Index, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { RetrospectQuestionUsage } from './question-usage.entity';
+import { RetrospectConceptEnum } from '../enums/retrospect-concept.enum';
+import { RetrospectAnswerTypeEnum } from '../enums/answer-type.enum';
 
 @Entity('retrospect_questions')
 export class RetrospectQuestion {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'enum', enum: RetrospectConcept })
-  concept: RetrospectConcept; // 감정/사건/성찰 중심
+  @Column({ type: 'enum', enum: RetrospectConceptEnum })
+  concept: RetrospectConceptEnum; // 감정/사건/성찰 중심
 
-  @Column({ type: 'enum', enum: AnswerType })
-  answer_type: AnswerType; // text, single_choice, multi_choice, score
+  @Column({ type: 'enum', enum: RetrospectAnswerTypeEnum })
+  answer_type: RetrospectAnswerTypeEnum; // text, single_choice, multi_choice, score
 
   @Column({ type: 'text' })
   question_text: string;

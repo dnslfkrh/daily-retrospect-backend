@@ -1,10 +1,10 @@
 import { IsNumber, IsString } from "@nestjs/class-validator";
-import { AnswerType } from "../enums/retrospect.enum";
+import { RetrospectAnswerTypeEnum } from "../enums/answer-type.enum";
 
 export class RetrospectAnswerDto {
   @IsNumber()
   questionId: number;
 
   @IsString()
-  answer: AnswerType;
+  answer: RetrospectAnswerTypeEnum;
 }

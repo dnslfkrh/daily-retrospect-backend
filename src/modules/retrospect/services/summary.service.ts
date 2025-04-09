@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
-import { UserSub } from "src/common/types/Payload";
+import { UserSub } from "src/common/types/user-payload.type";
 import { UserRepository } from "src/modules/user/repository/user.repository";
 import * as moment from "moment";
-import { GoalEvaluationPeriod } from "../enums/goal-evaluation-period.enum";
+import { GoalEvaluationPeriodEnum } from "../enums/goal-evaluation-period.enum";
 import { RetrospectAnswerRepository } from "../repositories/answer.repository";
 import { RetrospectSessionRepository } from "../repositories/session.repository";
 import { RetrospectSummaryRepository } from "../repositories/summary.repository";
@@ -49,11 +49,11 @@ export class RetrospectSummaryService {
   }
 
   private getPeriodRange(period: string) {
-    const periodMap: Record<string, GoalEvaluationPeriod> = {
-      "1개월": GoalEvaluationPeriod.OneMonth,
-      "3개월": GoalEvaluationPeriod.ThreeMonths,
-      "6개월": GoalEvaluationPeriod.SixMonths,
-      "1년": GoalEvaluationPeriod.OneYear,
+    const periodMap: Record<string, GoalEvaluationPeriodEnum> = {
+      "1개월": GoalEvaluationPeriodEnum.OneMonth,
+      "3개월": GoalEvaluationPeriodEnum.ThreeMonths,
+      "6개월": GoalEvaluationPeriodEnum.SixMonths,
+      "1년": GoalEvaluationPeriodEnum.OneYear,
     };
     const mappedPeriod = periodMap[period];
     if (!mappedPeriod) {
@@ -62,16 +62,16 @@ export class RetrospectSummaryService {
     const endDate = new Date();
     let startDate: Date;
     switch (mappedPeriod) {
-      case GoalEvaluationPeriod.OneMonth:
+      case GoalEvaluationPeriodEnum.OneMonth:
         startDate = moment().subtract(1, "months").toDate();
         break;
-      case GoalEvaluationPeriod.ThreeMonths:
+      case GoalEvaluationPeriodEnum.ThreeMonths:
         startDate = moment().subtract(3, "months").toDate();
         break;
-      case GoalEvaluationPeriod.SixMonths:
+      case GoalEvaluationPeriodEnum.SixMonths:
         startDate = moment().subtract(6, "months").toDate();
         break;
-      case GoalEvaluationPeriod.OneYear:
+      case GoalEvaluationPeriodEnum.OneYear:
         startDate = moment().subtract(1, "years").toDate();
         break;
       default:

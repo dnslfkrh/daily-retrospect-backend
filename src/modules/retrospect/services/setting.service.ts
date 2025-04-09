@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { UserSub } from "src/common/types/Payload";
+import { UserSub } from "src/common/types/user-payload.type";
 import { UserRepository } from "src/modules/user/repository/user.repository";
 import * as moment from "moment";
 import { RetrospectSettingDto } from "../dtos/setting.dto";

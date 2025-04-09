@@ -1,6 +1,6 @@
 import { createParamDecorator, ExecutionContext } from "@nestjs/common";
-import { CustomRequest } from "../types/CustomRequest";
-import { UserSub } from "../types/Payload";
+import { CustomRequest } from "../types/custom-request.type";
+import { UserSub } from "../types/user-payload.type";
 
 export const User = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): UserSub => {

@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { NewUserProps } from "src/common/types/Props";
 import { RetrospectSession } from "src/modules/retrospect/entities/session.entity";
 import { User } from "src/modules/user/entity/user.entity";
 import { Repository } from "typeorm";
-import { InactiveUserProps } from "../types/inactive-user.props";
+import { InactiveUserProps } from "../types/inactive-user.type";
+import { NewUserProps } from "../types/new-user.type";
 
 @Injectable()
 export class UserRepository {

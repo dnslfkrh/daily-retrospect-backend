@@ -1,10 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, Index, ManyToOne, Unique } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, Index, ManyToOne, Unique } from "typeorm";
 import { RetrospectQuestion } from "./question.entity";
 import { RetrospectSession } from "./session.entity";
 import { User } from "src/modules/user/entity/user.entity";
 
 @Entity('retrospect_question_usage')
-@Unique(['user', 'question']) // 사용자-질문 조합은 유일해야 함
+@Unique(['user', 'question']) // 사용자별 질문 사용 구분
 export class RetrospectQuestionUsage {
   @PrimaryGeneratedColumn()
   id: number;
