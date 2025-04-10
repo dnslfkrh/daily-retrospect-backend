@@ -27,7 +27,7 @@ import { ScheduleModule } from '@nestjs/schedule';
   controllers: [],
   providers: [
     {
-      provide: APP_GUARD, // 전역 가드, 사용자 바로 @User()
+      provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
     Reflector

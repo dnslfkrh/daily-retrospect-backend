@@ -17,10 +17,10 @@ export class Goal {
   description?: string;
 
   @Column({ type: 'date' })
-  start_date: string; // 목표 시작일
+  start_date: string;
 
   @Column({ type: 'date' })
-  end_date: string; // 목표 종료일
+  end_date: string;
 
   @OneToMany(() => RetrospectSession, (session) => session.goals)
   retrospect_session: RetrospectSession[];

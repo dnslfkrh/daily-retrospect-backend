@@ -34,20 +34,16 @@ export class RetrospectSessionService {
   */
   async findOrCreateSession(user: UserSub): Promise<FormattedSessionOutput> {
     const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
-    const today = moment().format('YYYY-MM-DD');
+    const today = moment().tz("Asia/Seoul").format("YYYY-MM-DD");
 
     let session = await this.sessionRepository.findSessionByDate(userId, today);
 
     if (!session) {
       session = await this.createSessionWithQuestions(userId);
-      session = await this.sessionRepository.findSessionById(session.id);
-      if (!session) {
-        throw new NotFoundException('Failed to load newly created session.');
-      }
-      const reloadedSession = await this.sessionRepository.findSessionByDate(userId, today);
-      if (!reloadedSession) throw new NotFoundException('Failed to reload session details.');
-      session = reloadedSession;
 
+      const reloadedSession = await this.sessionRepository.findSessionByDate(userId, today);
+      if (!reloadedSession) throw new NotFoundException("Failed to reload session details.");
+      session = reloadedSession;
     } else {
       if (!session.questions || !session.answers || !session.goals) {
         const reloadedSession = await this.sessionRepository.findSessionByDate(userId, today);
@@ -68,7 +64,12 @@ export class RetrospectSessionService {
       session.questions.push(goalQuestion);
     }
 
-    const existingAnswerQuestionIds = new Set(session.answers.map(a => a.question.id));
+    const existingAnswerQuestionIds = new Set(
+      session.answers
+        .filter(a => a.question && a.question.id)
+        .map(a => a.question.id)
+    );
+
     for (const question of session.questions) {
       if (!existingAnswerQuestionIds.has(question.id)) {
         const newAnswer = new RetrospectAnswer();

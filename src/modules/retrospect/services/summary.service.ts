@@ -47,7 +47,20 @@ export class RetrospectSummaryService {
   * @returns 요약 내용 문자열 또는 null
   */
   async getSummary(user: UserSub, date: string): Promise<string | null> {
-    const formattedDate = date ? moment(date).format('YYYY-MM-DD') : moment().format('YYYY-MM-DD');
+    let formattedDate: string;
+
+    if (!date) {
+      formattedDate = moment().format('YYYY-MM-DD');
+    }
+
+    const parsedDate = moment(date, 'YYYY-MM-DD', true);
+    
+    if (!parsedDate.isValid()) {
+      formattedDate = moment().format('YYYY-MM-DD');
+    } else {
+      formattedDate = parsedDate.format('YYYY-MM-DD');
+    }
+
     const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
     return await this.summaryRepository.findSummaryByUserAndDate(userId, formattedDate);
   }

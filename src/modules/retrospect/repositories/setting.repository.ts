@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository, UpdateResult } from "typeorm"; // UpdateResult 추가
+import { Repository } from "typeorm";
 import { RetrospectSettingDto } from "../dtos/setting.dto";
 import { RetrospectSetting } from "../entities/setting.entity";
 import { RetrospectConceptEnum } from "../enums/retrospect-concept.enum";
 import { RetrospectVolumeEnum } from "../enums/retrospect-volume.enum";
-import { User } from "src/modules/user/entity/user.entity"; // Added import
+import { User } from "src/modules/user/entity/user.entity";
 
 @Injectable()
 export class RetrospectSettingRepository {
