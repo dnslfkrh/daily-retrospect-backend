@@ -9,8 +9,8 @@ export async function testConnection() {
 
   try {
     await datasource.initialize();
-    logger.log("MySQL 연결 성공");
+    logger.log("MySQL Connect Success");
   } catch (error) {
-    logger.error("MySQL 연결 실패", error?.message);
+    logger.error("MySQL Connect Fail", error?.message);
   }
 }

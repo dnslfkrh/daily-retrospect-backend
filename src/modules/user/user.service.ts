@@ -35,7 +35,7 @@ export class UserService {
 
     return user;
   }
-
+  
   async findByCognitoId(cognito_id: string) {
     return await this.userRepository.findUserIdByCognitoId(cognito_id);
   }
@@ -63,7 +63,6 @@ export class UserService {
       throw new BadRequestException("이메일이 일치하지 않습니다.");
     }
 
-    // 1. DB 사용자 soft-delete 처리
     try {
       await this.userRepository.markUserAsDeleted(username);
     } catch (err) {
@@ -71,7 +70,6 @@ export class UserService {
       throw new InternalServerErrorException("DB 사용자 삭제 실패");
     }
 
-    // 2. Cognito 사용자 삭제 시도
     try {
       await this.cognitoClient.send(
         new AdminDeleteUserCommand({
@@ -82,7 +80,6 @@ export class UserService {
     } catch (err) {
       console.error("Cognito 사용자 삭제 실패", err);
 
-      // DB soft-delete 복구 시도
       try {
         await this.userRepository.unmarkUserAsDeleted(username);
       } catch (rollbackErr) {
@@ -92,12 +89,10 @@ export class UserService {
       throw new InternalServerErrorException("Cognito 사용자 삭제 실패. 다시 시도해주세요.");
     }
 
-    // 3. 모두 성공했을 경우 DB에서 진짜 삭제 (optional)
     try {
       await this.userRepository.deleteUserByCognitoId(username);
     } catch (finalErr) {
       console.error("최종 DB 사용자 삭제 실패", finalErr);
-      // 이 부분은 로그만 남기고 넘겨도 되고, 알림을 줄 수도 있음
     }
 
     return { success: true, message: "회원 탈퇴 성공" };

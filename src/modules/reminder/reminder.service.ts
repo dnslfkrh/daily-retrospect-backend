@@ -38,9 +38,9 @@ export class ReminderService {
 
     try {
       await this.sesClient.send(command);
-      console.log(`📧 이메일 전송 완료: ${to}`);
+      console.log(`이메일 전송 완료: ${to}`);
     } catch (error) {
-      console.error(`❌ 이메일 전송 실패: ${to}`, error);
+      console.error(`이메일 전송 실패: ${to}`, error);
     }
   }
 }

@@ -6,6 +6,9 @@ import { Public } from "src/common/decorators/public.decorator";
 import { User } from "src/common/decorators/user.decorator";
 import { UserSub } from "src/common/types/user-payload.type";
 import { ChangePasswordDto } from "./dto/password.dto";
+import { FRONTEND_URL } from "src/common/config/env/env";
+
+const logoutUrl = `${FRONTEND_URL}/auth`;
 
 @Controller("auth")
 export class AuthController {
@@ -14,28 +17,23 @@ export class AuthController {
     private readonly userService: UserService,
   ) { }
 
-  @Public() // 가드 적용 X
+  @Public()
   @Get("cognito/callback")
   async cognitoCallback(@Query("code") code: string, @Res() res: Response) {
     try {
-      // 1. Cognito 로그인 후 받은 code로 Token들 가져오기
       const tokenData = await this.authService.exchangeCodeForToken(code);
 
-      // 2. refresh token을 쿠키에 저장 (나중에 쿠키로 보내야 하는거 생기면 utils로 이동)
       res.cookie("refresh_token", tokenData.refresh_token, {
         httpOnly: true,
         secure: true,
         sameSite: 'lax',
       });
 
-      // 3. access token으로 사용자 정보 가져오기
       const userInfo = await this.authService.getUserInfo(tokenData.access_token);
 
-      // 4. 사용자 정보 DB에 저장
       await this.userService.joinOrAlready(userInfo);
 
-      // 5. 로그인 완료 후 클라이언트 콜백 리다이렉트
-      const frontendUrl = `http://localhost:3000/auth/callback?accessToken=${tokenData.access_token}&idToken=${tokenData.id_token}`;
+      const frontendUrl = `${FRONTEND_URL}/auth/callback?accessToken=${tokenData.access_token}&idToken=${tokenData.id_token}`;
       return res.redirect(frontendUrl);
     } catch (error) {
       console.error("Cognito callback error:", error);
@@ -49,7 +47,7 @@ export class AuthController {
     try {
       const refreshToken = req.cookies.refresh_token;
       if (!refreshToken) {
-        throw new UnauthorizedException("No refresh token found");
+        return res.redirect(logoutUrl);
       }
 
       const tokenData = await this.authService.refreshAccessToken(refreshToken);
@@ -65,10 +63,7 @@ export class AuthController {
   @Get("cognito/logout")
   async logout(@Res() res: Response) {
     try {
-      const logoutUrl = 'http://localhost:3000/auth';
-
       res.clearCookie("refresh_token", { httpOnly: true, secure: true, sameSite: 'lax' });
-
       return res.redirect(logoutUrl);
     } catch (error) {
       console.error("Logout error:", error);

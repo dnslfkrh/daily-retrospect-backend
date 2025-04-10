@@ -1,11 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Between, Repository } from "typeorm";
-import { subDays } from "date-fns"; // date-fns 사용 유지
-import * as moment from "moment"; // moment도 사용 중
+import { subDays, startOfDay, endOfDay } from "date-fns";
 import { RetrospectSummary } from "../entities/summary.entity";
-import { User } from "src/modules/user/entity/user.entity"; // Added import
-import { RetrospectSession } from "../entities/session.entity"; // Added import
 
 @Injectable()
 export class RetrospectSummaryRepository {
@@ -23,8 +20,8 @@ export class RetrospectSummaryRepository {
   */
   async saveSummary(sessionId: number, userId: number, summary: string): Promise<RetrospectSummary> {
     const newSummary = this.summaryRepository.create({
-      session: { id: sessionId } as RetrospectSession,
-      user: { id: userId } as User,
+      session: { id: sessionId },
+      user: { id: userId },
       summary,
       created_at: subDays(new Date(), 1) // 회고 작성 당일로 저장
     });
@@ -39,17 +36,28 @@ export class RetrospectSummaryRepository {
   * @returns 요약 내용 문자열 또는 null
   */
   async findSummaryByUserAndDate(userId: number, date: string): Promise<string | null> {
-    const startDate = moment(date).startOf('day').toDate();
-    const endDate = moment(date).endOf('day').toDate();
+    try {
+      const parsedDate = new Date(date);
+      if (isNaN(parsedDate.getTime())) {
+        throw new Error(`Invalid date format: ${date}. Expected format YYYY-MM-DD`);
+      }
 
-    const summary = await this.summaryRepository.findOne({
-      where: {
-        user: { id: userId },
-        created_at: Between(startDate, endDate),
-      },
-      select: ['summary']
-    });
-    return summary ? summary.summary : null;
+      const startDate = startOfDay(parsedDate);
+      const endDate = endOfDay(parsedDate);
+
+      const summary = await this.summaryRepository.findOne({
+        where: {
+          user: { id: userId },
+          created_at: Between(startDate, endDate),
+        },
+        relations: ['user']
+      });
+
+      return summary ? summary.summary : null;
+    } catch (error) {
+      console.error('Error finding summary by date:', error.message);
+      return null;
+    }
   }
 
   /**
@@ -58,12 +66,17 @@ export class RetrospectSummaryRepository {
   * @returns 가장 최근 RetrospectSummary 또는 null
   */
   async findLastSummary(userId: number): Promise<RetrospectSummary | null> {
-    const lastSummary = await this.summaryRepository.findOne({
-      where: {
-        user: { id: userId },
-      },
-      order: { created_at: 'DESC' },
-    });
-    return lastSummary;
+    try {
+      return await this.summaryRepository.findOne({
+        where: {
+          user: { id: userId },
+        },
+        relations: ['user'],
+        order: { created_at: 'DESC' },
+      });
+    } catch (error) {
+      console.error('Error finding last summary:', error.message);
+      return null;
+    }
   }
 }

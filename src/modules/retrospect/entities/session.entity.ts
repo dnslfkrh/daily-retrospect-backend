@@ -6,13 +6,13 @@ import { RetrospectQuestion } from './question.entity';
 import { RetrospectQuestionUsage } from './question-usage.entity';
 
 @Entity('retrospect_sessions')
-@Unique(['user', 'date']) // 같은 유저가 같은 날짜에 하나만 작성 가능
+@Unique(['user', 'date'])
 export class RetrospectSession {
   @PrimaryGeneratedColumn()
   id: number;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
-  user: User; // 회고 작성자
+  user: User;
 
   @ManyToMany(() => Goal, { eager: true })
   @JoinTable({ name: 'join_retrospect_sessions_goals' })

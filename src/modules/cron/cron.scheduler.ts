@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { AiService } from '../ai/ai.service';
 import { RetrospectService } from '../retrospect/retrospect.service';
-// 기존의 UserRetrospectProps 대신, getYesterdayAnswers의 반환 타입에 맞는 타입을 사용합니다.
 import { FormattedYesterdaySession } from '../retrospect/types/retrospect-output.types';
 
 @Injectable()
