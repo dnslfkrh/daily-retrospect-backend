@@ -1,18 +1,16 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { UserRepository } from "src/modules/user/repository/user.repository";
 import { ReminderService } from "../reminder/reminder.service";
 import { UserSub } from "src/common/types/user-payload.type";
 import { AdminDeleteUserCommand, CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
-import { AWS_COGNITO_USER_POOL_ID, AWS_REGION, AWS_SES_ACCESS_KEY, AWS_SES_SECRET_KEY } from "src/common/config/env/env";
-import { ConfirmDeleteUserDto } from "./dto/email.dto";
 
 @Injectable()
 export class UserService {
   private cognitoClient = new CognitoIdentityProviderClient({
-    region: AWS_REGION,
+    region: process.env.AWS_REGION,
     credentials: {
-      accessKeyId: AWS_SES_ACCESS_KEY,
-      secretAccessKey: AWS_SES_SECRET_KEY
+      accessKeyId: process.env.AWS_SES_ACCESS_KEY,
+      secretAccessKey: process.env.AWS_SES_SECRET_KEY
     }
   });
 
@@ -73,7 +71,7 @@ export class UserService {
     try {
       await this.cognitoClient.send(
         new AdminDeleteUserCommand({
-          UserPoolId: AWS_COGNITO_USER_POOL_ID,
+          UserPoolId: process.env.AWS_COGNITO_USER_POOL_ID,
           Username: username,
         })
       );

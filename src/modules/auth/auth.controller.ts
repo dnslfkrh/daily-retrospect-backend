@@ -6,9 +6,8 @@ import { Public } from "src/common/decorators/public.decorator";
 import { User } from "src/common/decorators/user.decorator";
 import { UserSub } from "src/common/types/user-payload.type";
 import { ChangePasswordDto } from "./dto/password.dto";
-import { FRONTEND_URL } from "src/common/config/env/env";
 
-const logoutUrl = `${FRONTEND_URL}/auth`;
+const logoutUrl = `${process.env.FRONTEND_URL}/auth`;
 
 @Controller("auth")
 export class AuthController {
@@ -33,7 +32,7 @@ export class AuthController {
 
       await this.userService.joinOrAlready(userInfo);
 
-      const frontendUrl = `${FRONTEND_URL}/auth/callback?accessToken=${tokenData.access_token}&idToken=${tokenData.id_token}`;
+      const frontendUrl = `${process.env.RONTEND_URL}/auth/callback?accessToken=${tokenData.access_token}&idToken=${tokenData.id_token}`;
       return res.redirect(frontendUrl);
     } catch (error) {
       console.error("Cognito callback error:", error);

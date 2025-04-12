@@ -1,6 +1,5 @@
 import { SendEmailCommand, SESClient } from "@aws-sdk/client-ses";
 import { Injectable } from "@nestjs/common";
-import { AWS_REGION, AWS_SES_ACCESS_KEY, AWS_SES_FROM_EMAIL, AWS_SES_SECRET_KEY, FRONTEND_URL } from "src/common/config/env/env";
 
 @Injectable()
 export class ReminderService {
@@ -9,14 +8,14 @@ export class ReminderService {
 
   constructor() {
     this.sesClient = new SESClient({
-      region: AWS_REGION,
+      region: process.env.AWS_REGION,
       credentials: {
-        accessKeyId: AWS_SES_ACCESS_KEY,
-        secretAccessKey: AWS_SES_SECRET_KEY
+        accessKeyId: process.env.AWS_SES_ACCESS_KEY,
+        secretAccessKey: process.env.AWS_SES_SECRET_KEY
       }
     });
 
-    this.fromEmail = AWS_SES_FROM_EMAIL;
+    this.fromEmail = process.env.AWS_SES_FROM_EMAIL;
   }
 
   // SES 도메인 증명 필요
@@ -24,7 +23,7 @@ export class ReminderService {
     const emailContent = `
       <p>안녕하세요, ${name}님!</p>
       <p>2일 동안 회고를 작성하지 않으셨네요.</p>
-      <p><a href=${FRONTEND_URL}>여기</a>를 클릭하여 회고를 작성해 보세요!</p>
+      <p><a href=${process.env.FRONTEND_URL}>여기</a>를 클릭하여 회고를 작성해 보세요!</p>
     `;
 
     const command = new SendEmailCommand({

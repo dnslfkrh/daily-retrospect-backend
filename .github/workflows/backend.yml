@@ -1,0 +1,52 @@
+name: Deploy Server to EC2
+
+on:
+  push:
+    branches:
+      - prod
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          ssh -o StrictHostKeyChecking=no -v ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
+            cd /home/ec2-user/daily-retrospect-backend
+            
+            # 리모트 URL 변경 (토큰 포함)
+            git remote set-url origin https://${GH_TOKEN}@github.com/dnslfkrh/daily-retrospect-backend.git
+            
+            # 변경사항 저장 또는 스태시
+            git stash
+            
+            # 최신 원격 정보 가져오기
+            git fetch origin prod
+            
+            # 강제로 원격 브랜치와 동기화 (주의: 로컬 변경사항이 있으면 덮어씁니다)
+            git reset --hard origin/prod
+            
+            # .env.prod 파일을 .env로 복사
+            cp .env.prod .env
+
+            # 빌드 및 재시작
+            pnpm install
+            pnpm build
+            pm2 restart ecosystem.config.js
+            
+            # 보안을 위해 리모트 URL 복원
+            git remote set-url origin https://github.com/dnslfkrh/daily-retrospect-backend.git
+          EOF
