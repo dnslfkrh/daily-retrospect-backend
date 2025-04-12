@@ -5,7 +5,6 @@ import * as jwksClient from "jwks-rsa";
 import { promisify } from "util";
 import * as jwt from "jsonwebtoken";
 import { ConfigService } from "@nestjs/config";
-import { AWS_COGNITO_USER_POOL_ID, AWS_REGION } from "src/common/config/env/env";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
@@ -32,7 +31,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
     });
 
     this.jwksClient = jwksClient({
-      jwksUri: `https://cognito-idp.${AWS_REGION}.amazonaws.com/${AWS_COGNITO_USER_POOL_ID}/.well-known/jwks.json`,
+      jwksUri: `https://cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${process.env.AWS_COGNITO_USER_POOL_ID}/.well-known/jwks.json`,
     });
   }
 

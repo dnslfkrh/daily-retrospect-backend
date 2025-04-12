@@ -1,11 +1,11 @@
 import { DataSource, DataSourceOptions } from "typeorm";
-import { mysqlConfig } from "./mysql";
 import { Logger } from "@nestjs/common";
+import { getMysqlConfig } from "./mysql";
 
 const logger = new Logger("TestConnection");
 
 export async function testConnection() {
-  const datasource = new DataSource(mysqlConfig as DataSourceOptions);
+  const datasource = new DataSource(getMysqlConfig() as DataSourceOptions);
 
   try {
     await datasource.initialize();

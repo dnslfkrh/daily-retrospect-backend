@@ -2,7 +2,6 @@ import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
 import { UserRepository } from "src/modules/user/repository/user.repository";
-import { AWS_COGNITO_CALLBACK_URL, AWS_COGNITO_CLIENT_ID, AWS_COGNITO_CLIENT_SECRET, AWS_COGNITO_DOMAIN, AWS_COGNITO_USER_POOL_ID, AWS_REGION, AWS_SES_ACCESS_KEY, AWS_SES_SECRET_KEY } from "src/common/config/env/env";
 import { UserSub } from "src/common/types/user-payload.type";
 import { ChangePasswordDto } from "./dto/password.dto";
 import { AdminGetUserCommand, ChangePasswordCommand, CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
@@ -10,10 +9,10 @@ import { AdminGetUserCommand, ChangePasswordCommand, CognitoIdentityProviderClie
 @Injectable()
 export class AuthService {
   private cognitoClient = new CognitoIdentityProviderClient({
-    region: AWS_REGION,
+    region: process.env.AWS_REGION,
     credentials: {
-      accessKeyId: AWS_SES_ACCESS_KEY,
-      secretAccessKey: AWS_SES_SECRET_KEY
+      accessKeyId: process.env.AWS_SES_ACCESS_KEY,
+      secretAccessKey: process.env.AWS_SES_SECRET_KEY
     }
   });
 
@@ -23,11 +22,11 @@ export class AuthService {
   ) { }
 
   async exchangeCodeForToken(code: string) {
-    const tokenUrl = `https://${AWS_COGNITO_DOMAIN}.auth.${AWS_REGION}.amazoncognito.com/oauth2/token`;
+    const tokenUrl = `https://${process.env.AWS_COGNITO_DOMAIN}.auth.${process.env.AWS_REGION}.amazoncognito.com/oauth2/token`;
 
-    const clientId = AWS_COGNITO_CLIENT_ID
-    const clientSecret = AWS_COGNITO_CLIENT_SECRET
-    const redirectUri = AWS_COGNITO_CALLBACK_URL
+    const clientId = process.env.AWS_COGNITO_CLIENT_ID
+    const clientSecret = process.env.AWS_COGNITO_CLIENT_SECRET
+    const redirectUri = process.env.AWS_COGNITO_CALLBACK_URL
 
     const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
@@ -56,7 +55,7 @@ export class AuthService {
   }
 
   async getUserInfo(accessToken: string) {
-    const userInfoUrl = `https://${AWS_COGNITO_DOMAIN}.auth.${AWS_REGION}.amazoncognito.com/oauth2/userInfo`;
+    const userInfoUrl = `https://${process.env.AWS_COGNITO_DOMAIN}.auth.${process.env.AWS_REGION}.amazoncognito.com/oauth2/userInfo`;
 
     try {
       const response = await firstValueFrom(
@@ -74,9 +73,9 @@ export class AuthService {
 
   async refreshAccessToken(refreshToken: string) {
     try {
-      const tokenUrl = `https://${AWS_COGNITO_DOMAIN}.auth.${AWS_REGION}.amazoncognito.com/oauth2/token`;
-      const clientId = AWS_COGNITO_CLIENT_ID;
-      const clientSecret = AWS_COGNITO_CLIENT_SECRET;
+      const tokenUrl = `https://${process.env.AWS_COGNITO_DOMAIN}.auth.${process.env.AWS_REGION}.amazoncognito.com/oauth2/token`;
+      const clientId = process.env.AWS_COGNITO_CLIENT_ID;
+      const clientSecret = process.env.AWS_COGNITO_CLIENT_SECRET;
 
       const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
@@ -107,7 +106,7 @@ export class AuthService {
       const username = typeof user === "string" ? user : user.sub;
 
       const command = new AdminGetUserCommand({
-        UserPoolId: AWS_COGNITO_USER_POOL_ID,
+        UserPoolId: process.env.AWS_COGNITO_USER_POOL_ID,
         Username: username,
       });
 
