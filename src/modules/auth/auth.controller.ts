@@ -32,7 +32,7 @@ export class AuthController {
 
       await this.userService.joinOrAlready(userInfo);
 
-      const frontendUrl = `${process.env.RONTEND_URL}/auth/callback?accessToken=${tokenData.access_token}&idToken=${tokenData.id_token}`;
+      const frontendUrl = `${process.env.FRONTEND_URL}/auth/callback?accessToken=${tokenData.access_token}&idToken=${tokenData.id_token}`;
       return res.redirect(frontendUrl);
     } catch (error) {
       console.error("Cognito callback error:", error);

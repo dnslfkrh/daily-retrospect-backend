@@ -1,7 +1,8 @@
-import { Column, Entity, Index, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, Index, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { RetrospectQuestionUsage } from './question-usage.entity';
 import { RetrospectConceptEnum } from '../enums/retrospect-concept.enum';
 import { RetrospectAnswerTypeEnum } from '../enums/answer-type.enum';
+import { RetrospectSession } from './session.entity';
 
 @Entity('retrospect_questions')
 export class RetrospectQuestion {
@@ -23,4 +24,7 @@ export class RetrospectQuestion {
 
   @OneToOne(() => RetrospectQuestionUsage, usage => usage.question)
   usage: RetrospectQuestionUsage;
+
+  @OneToMany(() => RetrospectSession, (session) => session.questions)
+  retrospect_session: RetrospectSession[];
 }

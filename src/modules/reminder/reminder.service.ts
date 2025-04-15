@@ -1,20 +1,16 @@
 import { SendEmailCommand, SESClient } from "@aws-sdk/client-ses";
 import { Injectable } from "@nestjs/common";
+import { AWSClient } from "src/common/aws/aws.client";
 
 @Injectable()
 export class ReminderService {
   private sesClient: SESClient;
   private fromEmail: string;
 
-  constructor() {
-    this.sesClient = new SESClient({
-      region: process.env.AWS_REGION,
-      credentials: {
-        accessKeyId: process.env.AWS_SES_ACCESS_KEY,
-        secretAccessKey: process.env.AWS_SES_SECRET_KEY
-      }
-    });
-
+  constructor(
+    private readonly awsClient: AWSClient
+  ) {
+    this.sesClient = this.awsClient.getSESClient();
     this.fromEmail = process.env.AWS_SES_FROM_EMAIL;
   }
 
