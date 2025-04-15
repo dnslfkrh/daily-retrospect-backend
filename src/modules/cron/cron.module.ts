@@ -8,7 +8,7 @@ import { AiModule } from '../ai/ai.module';
   imports: [
     UserModule,
     RetrospectModule,
-    AiModule
+    AiModule,
   ],
   providers: [
     CronScheduler

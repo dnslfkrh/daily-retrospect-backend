@@ -5,15 +5,17 @@ import { UserRepository } from './repository/user.repository';
 import { User } from './entity/user.entity';
 import { ReminderService } from '../reminder/reminder.service';
 import { UserController } from './user.controller';
+import { AwsModule } from 'src/common/aws/aws.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
+    AwsModule
   ],
   providers: [
     UserService,
     UserRepository,
-    ReminderService
+    ReminderService,
   ],
   exports: [
     UserService,
