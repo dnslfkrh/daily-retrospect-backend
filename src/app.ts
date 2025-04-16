@@ -12,6 +12,7 @@ import { CronModule } from './modules/cron/cron.module';
 import { AiModule } from './modules/ai/ai.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
+import { ImageModule } from './modules/image/image.module';
 
 @Module({
   imports: [
@@ -27,7 +28,8 @@ import { ConfigModule } from '@nestjs/config';
     RetrospectModule,
     GoalModule,
     ReminderModule,
-    AiModule
+    AiModule,
+    ImageModule,
   ],
   controllers: [],
   providers: [
