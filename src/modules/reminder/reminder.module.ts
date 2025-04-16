@@ -1,8 +1,11 @@
 import { Module } from "@nestjs/common";
 import { ReminderService } from "./reminder.service";
-import { UserModule } from "../user/user.module";
+import { AwsModule } from "../aws/aws.module";
 
 @Module({
+  imports: [
+    AwsModule
+  ],
   providers: [
     ReminderService,
   ],
