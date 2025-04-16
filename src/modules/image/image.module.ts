@@ -4,8 +4,8 @@ import { DailyImage } from "./entity/daily-image.entity";
 import { ImageService } from "./image.service";
 import { ImageRepository } from "./repository/image.repository";
 import { ImageController } from "./image.controller";
-import { AwsModule } from "src/common/aws/aws.module";
 import { UserModule } from "../user/user.module";
+import { AwsModule } from "../aws/aws.module";
 
 @Module({
   imports: [
