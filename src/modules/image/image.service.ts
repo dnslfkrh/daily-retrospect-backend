@@ -1,30 +1,24 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { AWSClient } from "src/common/aws/aws.client";
+import { Injectable } from "@nestjs/common";
 import { UserSub } from "src/common/types/user-payload.type";
 import { UserService } from "../user/user.service";
 import * as moment from "moment-timezone";
 import { ImageRepository } from "./repository/image.repository";
-import { Readable } from "stream";
+import { ApplyImageInput } from "./types/apply-images.type";
+import { S3Service } from "../aws/s3.service";
+import * as crypto from "crypto";
 
 @Injectable()
 export class ImageService {
-  private s3Client: S3Client;
-  private bucketName: string;
-
   constructor(
     private readonly userService: UserService,
     private readonly imageRepository: ImageRepository,
-    private readonly awsClient: AWSClient,
-  ) {
-    this.s3Client = this.awsClient.getS3Client();
-    this.bucketName = process.env.AWS_S3_BUCKET_NAME;
-  }
+    private readonly s3Service: S3Service,
+  ) { }
 
-  async getTodayImage(user: UserSub) {
-    const today = moment().format('YYYY-MM-DD');
+  async getImagesByDate(user: UserSub, targetDate: Date) {
+    const formattedDate = moment(targetDate).format('YYYY-MM-DD');
     const userId = await this.userService.findByCognitoId(user.sub);
-    const dailyImages = await this.imageRepository.findImagesByUserAndDate(userId, today);
+    const dailyImages = await this.imageRepository.findImagesByUserAndDate(userId, formattedDate);
 
     if (!dailyImages.length) {
       return [];
@@ -33,30 +27,19 @@ export class ImageService {
     const images = await Promise.all(
       dailyImages.map(async (dailyImage) => {
         try {
-          const getObjectCommand = new GetObjectCommand({
-            Bucket: this.bucketName,
-            Key: dailyImage.s3_key,
-          });
+          const imageBuffer = await this.s3Service.getObject(dailyImage.s3_key);
 
-          const response = await this.s3Client.send(getObjectCommand);
-
-          if (!response.Body) return null;
-
-          const chunks = [];
-          const stream = response.Body as Readable;
-
-          for await (const chunk of stream) {
-            chunks.push(chunk);
+          if (!imageBuffer) {
+            return null;
           }
 
-          const imageBuffer = Buffer.concat(chunks);
           const base64Image = imageBuffer.toString('base64');
-
           return {
             id: dailyImage.id,
-            contentType: response.ContentType || 'image/jpeg',
+            contentType: 'image/jpeg',
             data: base64Image,
             description: dailyImage.description,
+            s3_key: dailyImage.s3_key,
           };
         } catch (error) {
           console.error(`Failed to fetch image from S3 (key: ${dailyImage.s3_key})`, error);
@@ -66,5 +49,44 @@ export class ImageService {
     );
 
     return images.filter((img) => img !== null);
+  }
+
+  async applyImages(input: ApplyImageInput) {
+    const { user, existingKeys, newImages, newDescriptions } = input;
+
+    const userId = await this.userService.findByCognitoId(user.sub);
+    const today = moment().format("YYYY-MM-DD");
+
+    const existingImages = await this.imageRepository.findImagesByUserAndDate(userId, today);
+    const toDelete = existingImages.filter((img) => !existingKeys.includes(img.s3_key));
+
+    const deletePromises = toDelete.map(async (img) => {
+      await this.imageRepository.deleteImageById(img.id);
+      await this.s3Service.deleteObject(img.s3_key);
+    });
+
+    const uploadPromises = newImages.map(async (file, i) => {
+      const description = newDescriptions[i];
+      const timestamp = moment().format("YYYYMMDD_HHmmss");
+      const randomString = crypto.randomBytes(8).toString("hex");
+      const s3_key = `user-${userId}/${today}/${timestamp}_${randomString}_${file.originalname}`;
+
+      const s3Promise = this.s3Service.uploadObject({
+        key: s3_key,
+        body: file.buffer,
+        contentType: file.mimetype,
+      });
+
+      const dbPromise = this.imageRepository.saveImage({
+        userId,
+        s3_key,
+        description: description || "",
+        date: today,
+      });
+
+      return Promise.all([s3Promise, dbPromise]);
+    });
+
+    return await Promise.all([...deletePromises, ...uploadPromises.flat()]);
   }
 }

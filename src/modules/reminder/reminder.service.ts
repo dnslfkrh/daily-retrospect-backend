@@ -1,6 +1,6 @@
 import { SendEmailCommand, SESClient } from "@aws-sdk/client-ses";
 import { Injectable } from "@nestjs/common";
-import { AWSClient } from "src/common/aws/aws.client";
+import { AWSClient } from "../aws/aws.client";
 
 @Injectable()
 export class ReminderService {
