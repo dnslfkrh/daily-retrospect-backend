@@ -69,24 +69,4 @@ export class AuthController {
       throw new UnauthorizedException("Failed to log out");
     }
   }
-
-  @Get("user-info")
-  async getUserInfo(@User() user: UserSub) {
-    return await this.authService.getCognitoUser(user);
-  }
-
-  @Post("change-password")
-  async changePassword(
-    @User() user: UserSub,
-    @Body() body: ChangePasswordDto,
-    @Req() req: Request
-  ) {
-    const accessToken = req.headers.authorization?.split(" ")[1];
-    if (!accessToken) {
-      throw new UnauthorizedException("Access token is required");
-    }
-
-    await this.authService.changePassword(user, body, accessToken);
-    return { message: "Password changed successfully" };
-  }
 }
