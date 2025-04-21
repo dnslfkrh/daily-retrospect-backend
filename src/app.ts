@@ -11,16 +11,19 @@ import { ReminderModule } from './modules/reminder/reminder.module';
 import { CronModule } from './modules/cron/cron.module';
 import { AiModule } from './modules/ai/ai.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ImageModule } from './modules/image/image.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: process.env.NODE_ENV === 'production' ? '.env.prod' : '.env.dev',
+      envFilePath: process.env.NODE_ENV === 'development' ? '.env.dev' : '.env.prod',
     }),
-    TypeOrmModule.forRoot(getMysqlConfig()),
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => await getMysqlConfig(configService)
+    }),
     ScheduleModule.forRoot(),
     CronModule,
     AuthModule,
@@ -31,7 +34,6 @@ import { ImageModule } from './modules/image/image.module';
     AiModule,
     ImageModule,
   ],
-  controllers: [],
   providers: [
     {
       provide: APP_GUARD,

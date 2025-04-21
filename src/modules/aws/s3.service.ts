@@ -2,15 +2,19 @@ import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import { DeleteObjectCommand, GetObjectCommand, GetObjectCommandOutput, PutObjectCommand, S3Client } from "@aws-sdk/client-s3"; // S3Client 사용
 import { Readable } from "typeorm/platform/PlatformTools";
 import { AWSClient } from "./aws.client";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class S3Service {
   private readonly s3: S3Client;
   private readonly bucketName: string;
 
-  constructor(private readonly awsClient: AWSClient) {
+  constructor(
+    private readonly awsClient: AWSClient,
+    private readonly configService: ConfigService,
+  ) {
     this.s3 = this.awsClient.getS3Client();
-    this.bucketName = process.env.AWS_S3_BUCKET_NAME;
+    this.bucketName = this.configService.get<string>("AWS_S3_BUCKET_NAME");
   }
 
   async uploadObject(params: {

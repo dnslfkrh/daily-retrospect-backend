@@ -9,8 +9,12 @@ import { ConfigService } from "@nestjs/config";
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
   private jwksClient;
+  private readonly awsRegion: string;
+  private readonly cognitoUserPoolId: string;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -30,8 +34,16 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
       },
     });
 
+    this.awsRegion = this.configService.get<string>("AWS_REGION");
+    this.cognitoUserPoolId = this.configService.get<string>("AWS_COGNITO_USER_POOL_ID");
+
+
+    if (!this.awsRegion || !this.cognitoUserPoolId) {
+      throw new Error("AWS_REGION or COGNITO_USER_POOL_ID is not defined in environment variables.");
+    }
+
     this.jwksClient = jwksClient({
-      jwksUri: `https://cognito-idp.${process.env.AWS_REGION}.amazonaws.com/${process.env.AWS_COGNITO_USER_POOL_ID}/.well-known/jwks.json`,
+      jwksUri: `https://cognito-idp.${this.awsRegion}.amazonaws.com/${this.cognitoUserPoolId}/.well-known/jwks.json`,
     });
   }
 
