@@ -41,4 +41,22 @@ export class ImageRepository {
   async updateDescription(s3_key: string, description: string): Promise<UpdateResult> {
     return await this.imageRepository.update({ s3_key }, { description });
   }
+
+  async findRecentImagesByCount(userId: number, offset: number, imagesCount: number): Promise<DailyImage[]> {
+    return await this.imageRepository.find({
+      where: { user: { id: userId } },
+      order: {
+        date: "DESC",
+        created_at: "DESC"
+      },
+      skip: offset,
+      take: imagesCount
+    });
+  }
+
+  async findNumberOfImagesByUserId(userId: number): Promise<Number> {
+    return await this.imageRepository.count({
+      where: { user: { id: userId } }
+    });
+  }
 }
