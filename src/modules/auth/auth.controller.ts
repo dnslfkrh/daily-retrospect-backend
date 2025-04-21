@@ -1,20 +1,27 @@
-import { Body, Controller, Get, Post, Query, Req, Res, UnauthorizedException, UseGuards } from "@nestjs/common";
+import { Controller, Get, Post, Query, Req, Res, UnauthorizedException } from "@nestjs/common";
 import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import { UserService } from "../user/user.service";
 import { Public } from "src/common/decorators/public.decorator";
-import { User } from "src/common/decorators/user.decorator";
-import { UserSub } from "src/common/types/user-payload.type";
-import { ChangePasswordDto } from "./dto/password.dto";
-
-const logoutUrl = `${process.env.FRONTEND_URL}/auth`;
+import { ConfigService } from "@nestjs/config";
 
 @Controller("auth")
 export class AuthController {
+  private readonly frontend: string;
+  private readonly logoutUrl: string;
+
   constructor(
+    private readonly configService: ConfigService,
     private readonly authService: AuthService,
     private readonly userService: UserService,
-  ) { }
+  ) {
+    this.frontend = this.configService.get<string>("FRONTEND_URL");
+    this.logoutUrl = this.frontend + "/auth";
+
+    if (!this.frontend) {
+      throw new Error("FRONTEND_URL is missing. Please check your environment variables.");
+    }
+  }
 
   @Public()
   @Get("cognito/callback")
@@ -32,7 +39,7 @@ export class AuthController {
 
       await this.userService.joinOrAlready(userInfo);
 
-      const frontendUrl = `${process.env.FRONTEND_URL}/auth/callback?accessToken=${tokenData.access_token}&idToken=${tokenData.id_token}`;
+      const frontendUrl = `${this.frontend}/auth/callback?accessToken=${tokenData.access_token}&idToken=${tokenData.id_token}`;
       return res.redirect(frontendUrl);
     } catch (error) {
       console.error("Cognito callback error:", error);
@@ -46,7 +53,7 @@ export class AuthController {
     try {
       const refreshToken = req.cookies.refresh_token;
       if (!refreshToken) {
-        return res.redirect(logoutUrl);
+        return res.redirect(`${this.logoutUrl}`);
       }
 
       const tokenData = await this.authService.refreshAccessToken(refreshToken);
@@ -63,30 +70,11 @@ export class AuthController {
   async logout(@Res() res: Response) {
     try {
       res.clearCookie("refresh_token", { httpOnly: true, secure: true, sameSite: 'lax' });
-      return res.redirect(logoutUrl);
+
+      return res.redirect(`${this.logoutUrl}`);
     } catch (error) {
       console.error("Logout error:", error);
       throw new UnauthorizedException("Failed to log out");
     }
-  }
-
-  @Get("user-info")
-  async getUserInfo(@User() user: UserSub) {
-    return await this.authService.getCognitoUser(user);
-  }
-
-  @Post("change-password")
-  async changePassword(
-    @User() user: UserSub,
-    @Body() body: ChangePasswordDto,
-    @Req() req: Request
-  ) {
-    const accessToken = req.headers.authorization?.split(" ")[1];
-    if (!accessToken) {
-      throw new UnauthorizedException("Access token is required");
-    }
-
-    await this.authService.changePassword(user, body, accessToken);
-    return { message: "Password changed successfully" };
   }
 }

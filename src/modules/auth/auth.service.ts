@@ -1,32 +1,33 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
-import { UserRepository } from "src/modules/user/repository/user.repository";
-import { UserSub } from "src/common/types/user-payload.type";
-import { ChangePasswordDto } from "./dto/password.dto";
-import { AdminGetUserCommand, ChangePasswordCommand, CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
+import { UserService } from "../user/user.service";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AuthService {
-  private cognitoClient = new CognitoIdentityProviderClient({
-    region: process.env.AWS_REGION,
-    credentials: {
-      accessKeyId: process.env.AWS_SES_ACCESS_KEY,
-      secretAccessKey: process.env.AWS_SES_SECRET_KEY
-    }
-  });
+  private readonly cognitoDomain: string;
+  private readonly awsRegion: string;
 
   constructor(
+    private readonly configService: ConfigService,
     private readonly httpService: HttpService,
-    private readonly userRepository: UserRepository,
-  ) { }
+    private readonly userService: UserService,
+  ) {
+    this.cognitoDomain = this.configService.get<string>("AWS_COGNITO_DOMAIN");
+    this.awsRegion = this.configService.get<string>("AWS_REGION");
+
+    if (!this.cognitoDomain || !this.awsRegion) {
+      throw new Error("Cognito domain or region is missing. Please check your environment variables.");
+    }
+  }
 
   async exchangeCodeForToken(code: string) {
-    const tokenUrl = `https://${process.env.AWS_COGNITO_DOMAIN}.auth.${process.env.AWS_REGION}.amazoncognito.com/oauth2/token`;
+    const tokenUrl = `https://${this.cognitoDomain}.auth.${this.awsRegion}.amazoncognito.com/oauth2/token`;
 
-    const clientId = process.env.AWS_COGNITO_CLIENT_ID
-    const clientSecret = process.env.AWS_COGNITO_CLIENT_SECRET
-    const redirectUri = process.env.AWS_COGNITO_CALLBACK_URL
+    const clientId = this.configService.get<string>("AWS_COGNITO_CLIENT_ID");
+    const clientSecret = this.configService.get<string>("AWS_COGNITO_CLIENT_SECRET");
+    const redirectUri = this.configService.get<string>("AWS_COGNITO_CALLBACK_URL");
 
     const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
@@ -55,7 +56,7 @@ export class AuthService {
   }
 
   async getUserInfo(accessToken: string) {
-    const userInfoUrl = `https://${process.env.AWS_COGNITO_DOMAIN}.auth.${process.env.AWS_REGION}.amazoncognito.com/oauth2/userInfo`;
+    const userInfoUrl = `https://${this.cognitoDomain}.auth.${this.awsRegion}.amazoncognito.com/oauth2/userInfo`;
 
     try {
       const response = await firstValueFrom(
@@ -73,9 +74,9 @@ export class AuthService {
 
   async refreshAccessToken(refreshToken: string) {
     try {
-      const tokenUrl = `https://${process.env.AWS_COGNITO_DOMAIN}.auth.${process.env.AWS_REGION}.amazoncognito.com/oauth2/token`;
-      const clientId = process.env.AWS_COGNITO_CLIENT_ID;
-      const clientSecret = process.env.AWS_COGNITO_CLIENT_SECRET;
+      const tokenUrl = `https://${this.cognitoDomain}.auth.${this.awsRegion}.amazoncognito.com/oauth2/token`;
+      const clientId = this.configService.get<string>("AWS_COGNITO_CLIENT_ID");
+      const clientSecret = this.configService.get<string>("AWS_COGNITO_CLIENT_SECRET");
 
       const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
 
@@ -98,61 +99,6 @@ export class AuthService {
     } catch (error) {
       console.error("Cognito refresh token error:", error.response?.data || error.message);
       throw new UnauthorizedException("Failed to refresh access token");
-    }
-  }
-
-  async getCognitoUser(user: UserSub) {
-    try {
-      const username = typeof user === "string" ? user : user.sub;
-
-      const command = new AdminGetUserCommand({
-        UserPoolId: process.env.AWS_COGNITO_USER_POOL_ID,
-        Username: username,
-      });
-
-      const result = await this.cognitoClient.send(command);
-
-      const attributes = result.UserAttributes?.reduce((acc, attr) => {
-        acc[attr.Name] = attr.Value;
-        return acc;
-      }, {} as Record<string, string>);
-
-      return {
-        username: result.Username,
-        attributes,
-        isSocialUser: Boolean(attributes["identities"]),
-      };
-    } catch (error) {
-      console.error("Failed to get user info from Cognito:", error);
-      throw new UnauthorizedException("Failed to retrieve user information");
-    }
-  }
-
-  async changePassword(user: UserSub, body: ChangePasswordDto, accessToken: string): Promise<void> {
-    const { previousPassword, newPassword } = body;
-
-    try {
-      const userInfo = await this.getCognitoUser(user);
-      if (userInfo.isSocialUser) {
-        throw new UnauthorizedException("소셜 로그인 사용자는 비밀번호를 변경할 수 없습니다.");
-      }
-
-      const command = new ChangePasswordCommand({
-        PreviousPassword: previousPassword,
-        ProposedPassword: newPassword,
-        AccessToken: accessToken,
-      });
-
-      await this.cognitoClient.send(command);
-    } catch (error) {
-      if (error.name === "InvalidPasswordException") {
-        throw new UnauthorizedException(error.message || "Invalid password format");
-      } else if (error.name === "NotAuthorizedException") {
-        throw new UnauthorizedException("기존 비밀번호가 올바르지 않습니다.");
-      } else {
-        console.error("Failed to change password:", error);
-        throw new UnauthorizedException("Failed to change password");
-      }
     }
   }
 }

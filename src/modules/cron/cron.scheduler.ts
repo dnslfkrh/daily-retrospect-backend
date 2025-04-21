@@ -3,6 +3,7 @@ import { UserService } from '../user/user.service';
 import { AiService } from '../ai/ai.service';
 import { RetrospectService } from '../retrospect/retrospect.service';
 import { FormattedYesterdaySession } from '../retrospect/types/retrospect-output.types';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class CronScheduler {
@@ -19,7 +20,7 @@ export class CronScheduler {
   }
 
   /* 회고 AI 요약 */
-  // @Cron('41 17 * * *')
+  // @Cron('33 22 * * *')
   async analyzeRetrospects1() {
     console.log('AI 요약 시작');
 

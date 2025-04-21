@@ -3,16 +3,20 @@ dotenv.config();
 
 import { NestFactory } from '@nestjs/core';
 import { App } from './app';
-import { testConnection } from './common/config/database/testConnection';
-import { ValidationPipe } from '@nestjs/common';
+import { testConnection } from './common/utils/testConnection';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
+import { ConfigService } from "@nestjs/config";
+
+const logger = new Logger("TestConnection");
 
 async function bootstrap() {
 
   const app = await NestFactory.create(App);
+  const configService = app.get(ConfigService);
 
   app.enableCors({
-    origin: process.env.FRONTEND_URL,
+    origin: configService.get<string>('FRONTEND_URL'),
     credentials: true,
   });
 
@@ -23,7 +27,13 @@ async function bootstrap() {
     transform: true,            // 요청 데이터를 DTO 타입으로 변환
     forbidNonWhitelisted: true, // DTO에 없는 값이 들어오면 에러 발생
   }));
-  await app.listen(Number(process.env.PORT), "0.0.0.0");
+
+  const PORT = configService.get<number>('PORT');
+  const BACKEND_URL = configService.get<string>('BACKEND_URL');
+
+  await app.listen(PORT, "0.0.0.0");
+
+  logger.log(`Server is running on ${BACKEND_URL}, Port: ${PORT}`);
 }
 
 testConnection();
