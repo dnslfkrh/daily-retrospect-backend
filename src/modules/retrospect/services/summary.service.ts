@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { UserSub } from "src/common/types/user-payload.type";
 import { UserRepository } from "src/modules/user/repository/user.repository";
 import * as moment from "moment";
@@ -46,18 +46,13 @@ export class RetrospectSummaryService {
   * @param date 조회할 날짜 (YYYY-MM-DD 형식 문자열)
   * @returns 요약 내용 문자열 또는 null
   */
-  async getSummary(user: UserSub, date: string): Promise<string | null> {
+  async getSummary(user: UserSub, date?: string): Promise<string | null> {
     let formattedDate: string;
 
     if (!date) {
-      formattedDate = moment().format('YYYY-MM-DD');
-    }
-
-    const parsedDate = moment(date, 'YYYY-MM-DD', true);
-    
-    if (!parsedDate.isValid()) {
-      formattedDate = moment().format('YYYY-MM-DD');
+      formattedDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
     } else {
+      const parsedDate = moment(new Date(date));
       formattedDate = parsedDate.format('YYYY-MM-DD');
     }
 

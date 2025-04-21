@@ -51,6 +51,7 @@ export class AiService {
       });
 
       const prompt = PromptLibrary.getRetrospectSummaryPrompt(formattedAnswers);
+      const maxTokens = parseInt(this.configService.get<string>("API_MAX_TOKENS"));
 
       const response = await this.openai.chat.completions.create({
         model: this.configService.get<string>("GPT_MODEL"),
@@ -61,7 +62,7 @@ export class AiService {
           },
           { role: "user", content: prompt },
         ],
-        max_tokens: this.configService.get<number>("API_MAX_TOKENS"),
+        max_tokens: maxTokens,
       });
 
       return response.choices[0].message.content.trim();
