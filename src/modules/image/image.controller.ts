@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UploadedFiles, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query, UploadedFiles, UseInterceptors } from "@nestjs/common";
 import { ImageService } from "./image.service";
 import { User } from "src/common/decorators/user.decorator";
 import { UserSub } from "src/common/types/user-payload.type";
@@ -25,13 +25,23 @@ export class ImageController {
     const descriptions = typeof body.descriptions === "string" ? [body.descriptions] : body.descriptions;
     const existingKeys: string[] = JSON.parse(body.existingImages ?? "[]");
 
-    console.log("Incoming images:", images);
-
     return await this.imageService.applyImages({
       user,
       existingKeys,
       newImages: images ?? [],
       newDescriptions: descriptions,
     });
+  }
+
+  @Get("gallery")
+  async getImagesForGallery(@User() user: UserSub, @Query("page") page: number) {
+    const pageNumber = page;
+    const imagesCount = 10;
+    return await this.imageService.getImagesForGallery(user, pageNumber, imagesCount);
+  }
+
+  @Get("numbers")
+  async getNumberOfImages(@User() user: UserSub) {
+    return await this.imageService.getNumberOfImages(user);
   }
 }

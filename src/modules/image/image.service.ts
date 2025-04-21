@@ -89,4 +89,42 @@ export class ImageService {
 
     return await Promise.all([...deletePromises, ...uploadPromises.flat()]);
   }
+
+  async getImagesForGallery(user: UserSub, page: number, imagesCount: number) {
+    const userId = await this.userService.findByCognitoId(user.sub);
+    const offset = (page - 1) * imagesCount;
+    const imagesKeys = await this.imageRepository.findRecentImagesByCount(userId, offset, imagesCount);
+
+    const images = await Promise.all(
+      imagesKeys.map(async (dailyImage) => {
+        try {
+          const imageBuffer = await this.s3Service.getObject(dailyImage.s3_key);
+
+          if (!imageBuffer) {
+            return null;
+          }
+
+          const base64Image = imageBuffer.toString('base64');
+          return {
+            id: dailyImage.id,
+            contentType: 'image/jpeg',
+            data: base64Image,
+            description: dailyImage.description,
+            s3_key: dailyImage.s3_key,
+            date: dailyImage.date,
+          };
+        } catch (error) {
+          console.error(`Failed to fetch image from S3 (key: ${dailyImage.s3_key})`, error);
+          return null;
+        }
+      })
+    );
+
+    return images.filter((img) => img !== null);
+  }
+
+  async getNumberOfImages(user: UserSub) {
+    const userId = await this.userService.findByCognitoId(user.sub);
+    return await this.imageRepository.findNumberOfImagesByUserId(userId);
+  }
 }
