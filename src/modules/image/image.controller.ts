@@ -19,16 +19,18 @@ export class ImageController {
   @UseInterceptors(FilesInterceptor("images", 3))
   async applyImages(
     @User() user: UserSub,
-    @UploadedFiles() images: Express.Multer.File[],
+    @UploadedFiles() images: Express.Multer.File[] = [],
     @Body() body: { descriptions: string | string[]; existingImages: string }
   ) {
     const descriptions = typeof body.descriptions === "string" ? [body.descriptions] : body.descriptions;
     const existingKeys: string[] = JSON.parse(body.existingImages ?? "[]");
 
+    console.log("Incoming images:", images);
+
     return await this.imageService.applyImages({
       user,
       existingKeys,
-      newImages: images,
+      newImages: images ?? [],
       newDescriptions: descriptions,
     });
   }
