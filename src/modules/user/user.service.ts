@@ -4,21 +4,27 @@ import { ReminderService } from "../reminder/reminder.service";
 import { UserSub } from "src/common/types/user-payload.type";
 import { AdminDeleteUserCommand, AdminGetUserCommand, ChangePasswordCommand, CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
 import { ChangePasswordDto } from "../auth/dto/password.dto";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class UserService {
-  private cognitoClient = new CognitoIdentityProviderClient({
-    region: process.env.AWS_REGION,
-    credentials: {
-      accessKeyId: process.env.AWS_SES_ACCESS_KEY,
-      secretAccessKey: process.env.AWS_SES_SECRET_KEY
-    }
-  });
+  private cognitoClient = new CognitoIdentityProviderClient;
+  private readonly cognitoUserPoolId: string;
 
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly reminderService: ReminderService
-  ) { }
+    private readonly reminderService: ReminderService,
+    private readonly configService: ConfigService,
+  ) {
+    this.cognitoClient = new CognitoIdentityProviderClient({
+      region: this.configService.get<string>("AWS_REGION"),
+      credentials: {
+        accessKeyId: this.configService.get<string>("AWS_SES_ACCESS_KEY"),
+        secretAccessKey: this.configService.get<string>("AWS_SES_SECRET_KEY"),
+      },
+    });
+    this.cognitoUserPoolId = this.configService.get<string>("AWS_COGNITO_USER_POOL_ID")
+  }
 
   async joinOrAlready(userInfo: { sub: string; name: string; email: string }) {
     const { sub, name, email } = userInfo;
@@ -72,7 +78,7 @@ export class UserService {
     try {
       await this.cognitoClient.send(
         new AdminDeleteUserCommand({
-          UserPoolId: process.env.AWS_COGNITO_USER_POOL_ID,
+          UserPoolId: this.cognitoUserPoolId,
           Username: username,
         })
       );
@@ -102,7 +108,7 @@ export class UserService {
       const username = typeof user === "string" ? user : user.sub;
 
       const command = new AdminGetUserCommand({
-        UserPoolId: process.env.AWS_COGNITO_USER_POOL_ID,
+        UserPoolId: this.cognitoUserPoolId,
         Username: username,
       });
 

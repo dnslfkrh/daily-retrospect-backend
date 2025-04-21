@@ -8,14 +8,17 @@ import { RetrospectSession } from "src/modules/retrospect/entities/session.entit
 import { RetrospectSummary } from "src/modules/retrospect/entities/summary.entity";
 import { RetrospectQuestionUsage } from "src/modules/retrospect/entities/question-usage.entity";
 import { DailyImage } from "src/modules/image/entity/daily-image.entity";
+import { ConfigService } from "@nestjs/config";
 
-export const getMysqlConfig = (): TypeOrmModuleOptions => ({
+export const getMysqlConfig = async (
+  configService: ConfigService
+): Promise<TypeOrmModuleOptions> => ({
   type: 'mysql',
-  username: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  database: process.env.DB_DATABASE,
+  username: configService.get<string>('DB_USER'),
+  password: configService.get<string>('DB_PASSWORD'),
+  host: configService.get<string>('DB_HOST'),
+  port: configService.get<number>('DB_PORT'),
+  database: configService.get<string>('DB_DATABASE'),
   synchronize: false,
   charset: 'utf8mb4',
   entities: [
