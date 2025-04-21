@@ -2,22 +2,29 @@ import { BadRequestException, Injectable, InternalServerErrorException, Unauthor
 import { UserRepository } from "src/modules/user/repository/user.repository";
 import { ReminderService } from "../reminder/reminder.service";
 import { UserSub } from "src/common/types/user-payload.type";
-import { AdminDeleteUserCommand, CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
+import { AdminDeleteUserCommand, AdminGetUserCommand, ChangePasswordCommand, CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
+import { ChangePasswordDto } from "../auth/dto/password.dto";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class UserService {
-  private cognitoClient = new CognitoIdentityProviderClient({
-    region: process.env.AWS_REGION,
-    credentials: {
-      accessKeyId: process.env.AWS_SES_ACCESS_KEY,
-      secretAccessKey: process.env.AWS_SES_SECRET_KEY
-    }
-  });
+  private cognitoClient = new CognitoIdentityProviderClient;
+  private readonly cognitoUserPoolId: string;
 
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly reminderService: ReminderService
-  ) { }
+    private readonly reminderService: ReminderService,
+    private readonly configService: ConfigService,
+  ) {
+    this.cognitoClient = new CognitoIdentityProviderClient({
+      region: this.configService.get<string>("AWS_REGION"),
+      credentials: {
+        accessKeyId: this.configService.get<string>("AWS_SES_ACCESS_KEY"),
+        secretAccessKey: this.configService.get<string>("AWS_SES_SECRET_KEY"),
+      },
+    });
+    this.cognitoUserPoolId = this.configService.get<string>("AWS_COGNITO_USER_POOL_ID")
+  }
 
   async joinOrAlready(userInfo: { sub: string; name: string; email: string }) {
     const { sub, name, email } = userInfo;
@@ -33,7 +40,7 @@ export class UserService {
 
     return user;
   }
-  
+
   async findByCognitoId(cognito_id: string) {
     return await this.userRepository.findUserIdByCognitoId(cognito_id);
   }
@@ -71,7 +78,7 @@ export class UserService {
     try {
       await this.cognitoClient.send(
         new AdminDeleteUserCommand({
-          UserPoolId: process.env.AWS_COGNITO_USER_POOL_ID,
+          UserPoolId: this.cognitoUserPoolId,
           Username: username,
         })
       );
@@ -94,5 +101,60 @@ export class UserService {
     }
 
     return { success: true, message: "회원 탈퇴 성공" };
+  }
+
+  async getCognitoUser(user: UserSub) {
+    try {
+      const username = typeof user === "string" ? user : user.sub;
+
+      const command = new AdminGetUserCommand({
+        UserPoolId: this.cognitoUserPoolId,
+        Username: username,
+      });
+
+      const result = await this.cognitoClient.send(command);
+
+      const attributes = result.UserAttributes?.reduce((acc, attr) => {
+        acc[attr.Name] = attr.Value;
+        return acc;
+      }, {} as Record<string, string>);
+
+      return {
+        username: result.Username,
+        attributes,
+        isSocialUser: Boolean(attributes["identities"]),
+      };
+    } catch (error) {
+      console.error("Failed to get user info from Cognito:", error);
+      throw new UnauthorizedException("Failed to retrieve user information");
+    }
+  }
+
+  async changePassword(user: UserSub, body: ChangePasswordDto, accessToken: string): Promise<void> {
+    const { previousPassword, newPassword } = body;
+
+    try {
+      const userInfo = await this.getCognitoUser(user);
+      if (userInfo.isSocialUser) {
+        throw new UnauthorizedException("소셜 로그인 사용자는 비밀번호를 변경할 수 없습니다.");
+      }
+
+      const command = new ChangePasswordCommand({
+        PreviousPassword: previousPassword,
+        ProposedPassword: newPassword,
+        AccessToken: accessToken,
+      });
+
+      await this.cognitoClient.send(command);
+    } catch (error) {
+      if (error.name === "InvalidPasswordException") {
+        throw new UnauthorizedException(error.message || "Invalid password format");
+      } else if (error.name === "NotAuthorizedException") {
+        throw new UnauthorizedException("기존 비밀번호가 올바르지 않습니다.");
+      } else {
+        console.error("Failed to change password:", error);
+        throw new UnauthorizedException("Failed to change password");
+      }
+    }
   }
 }

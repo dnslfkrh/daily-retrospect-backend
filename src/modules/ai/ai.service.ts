@@ -2,14 +2,17 @@ import { Injectable, InternalServerErrorException } from "@nestjs/common";
 import OpenAI from "openai";
 import { PromptLibrary } from "src/modules/ai/library/prompt.library";
 import { RetrospectAnswerProps } from "./types/retrospect-answer.type";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AiService {
   private openai: OpenAI;
 
-  constructor() {
+  constructor(
+    private readonly configService: ConfigService
+  ) {
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: this.configService.get<string>('OPENAI_API_KEY')
     });
   }
 
@@ -48,9 +51,10 @@ export class AiService {
       });
 
       const prompt = PromptLibrary.getRetrospectSummaryPrompt(formattedAnswers);
+      const maxTokens = parseInt(this.configService.get<string>("API_MAX_TOKENS"));
 
       const response = await this.openai.chat.completions.create({
-        model: process.env.GPT_MODEL,
+        model: this.configService.get<string>("GPT_MODEL"),
         messages: [
           {
             role: "system",
@@ -58,7 +62,7 @@ export class AiService {
           },
           { role: "user", content: prompt },
         ],
-        max_tokens: Number(process.env.API_MAX_TOKENS),
+        max_tokens: maxTokens,
       });
 
       return response.choices[0].message.content.trim();
