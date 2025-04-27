@@ -3,6 +3,7 @@ import { ImageService } from "./image.service";
 import { User } from "src/common/decorators/user.decorator";
 import { UserSub } from "src/common/types/user-payload.type";
 import { FilesInterceptor } from "@nestjs/platform-express";
+import { ApplyImagesDto } from "./dto/apply-images.dto";
 
 @Controller("image")
 export class ImageController {
@@ -15,21 +16,20 @@ export class ImageController {
     return await this.imageService.getImagesByDate(user, new Date());
   }
 
+  @Get("apply/signed-url")
+  async getSignedUrl(@User() user: UserSub) {
+    return await this.imageService.getUploadSignedUrl(user);
+  }
+
   @Post("apply")
-  @UseInterceptors(FilesInterceptor("images", 3))
   async applyImages(
     @User() user: UserSub,
-    @UploadedFiles() images: Express.Multer.File[] = [],
-    @Body() body: { descriptions: string | string[]; existingImages: string }
+    @Body() applyImagesDto: ApplyImagesDto
   ) {
-    const descriptions = typeof body.descriptions === "string" ? [body.descriptions] : body.descriptions;
-    const existingKeys: string[] = JSON.parse(body.existingImages ?? "[]");
-
     return await this.imageService.applyImages({
       user,
-      existingKeys,
-      newImages: images ?? [],
-      newDescriptions: descriptions,
+      existingKeys: applyImagesDto.existingKeys,
+      newImages: applyImagesDto.newImages
     });
   }
 

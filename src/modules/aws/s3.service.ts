@@ -3,6 +3,7 @@ import { DeleteObjectCommand, GetObjectCommand, GetObjectCommandOutput, PutObjec
 import { Readable } from "typeorm/platform/PlatformTools";
 import { AWSClient } from "./aws.client";
 import { ConfigService } from "@nestjs/config";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 @Injectable()
 export class S3Service {
@@ -71,5 +72,25 @@ export class S3Service {
       console.error('Error getting object from S3:', error);
       throw new InternalServerErrorException('Error getting object from S3');
     }
+  }
+
+  async getSignedUrl(key: string, expiresInSeconds = 300): Promise<string> {
+    return getSignedUrl(this.s3, new GetObjectCommand({
+      Bucket: this.bucketName,
+      Key: key,
+    }), {
+      expiresIn: expiresInSeconds,
+    })
+  }
+
+  async getUploadSignedUrl(key: string, contentType: string, expiresInSeconds = 300): Promise<string> {
+    return getSignedUrl(this.s3, new PutObjectCommand({
+      Bucket: this.bucketName,
+      Key: key,
+      ContentType: contentType,
+      ACL: "private",
+    }), {
+      expiresIn: expiresInSeconds,
+    });
   }
 }
