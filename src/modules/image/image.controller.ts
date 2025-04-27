@@ -34,10 +34,12 @@ export class ImageController {
   }
 
   @Get("gallery")
-  async getImagesForGallery(@User() user: UserSub, @Query("page") page: number) {
-    const pageNumber = page;
-    const imagesCount = 10;
-    return await this.imageService.getImagesForGallery(user, pageNumber, imagesCount);
+  async getImagesForGallery(
+    @User() user: UserSub,
+    @Query("page") page: number,
+    @Query("imagesCount") imagesCount: number = 10
+  ) {
+    return await this.imageService.getImagesForGallery(user, page, imagesCount);
   }
 
   @Get("numbers")
