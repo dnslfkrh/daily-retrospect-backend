@@ -19,12 +19,19 @@ export class RetrospectController {
 
   @Post('setting')
   async setSetting(@User() user: UserSub, @Body() setting: RetrospectSettingDto) {
-    return await this.retrospectService.setSetting(user, setting);
+    const result =  await this.retrospectService.setSetting(user, setting);
+    console.log("Setting result:", result);
+    return result;
   }
 
   @Get('session')
   async getSession(@User() user: UserSub) {
     return await this.retrospectService.findOrCreateSession(user);
+  }
+
+  @Get('session/today')
+  async todaySessionExistCheck(@User() user: UserSub) {
+    return await this.retrospectService.todaySessionExistCheck(user);
   }
 
   @Post('session/:sessionId/answer')
