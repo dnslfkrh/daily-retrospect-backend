@@ -198,4 +198,12 @@ export class RetrospectSessionService {
       })),
     };
   }
+
+  async todaySessionExistCheck(user: UserSub): Promise<boolean> {
+    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
+    const today = moment().tz("Asia/Seoul").format("YYYY-MM-DD");
+    const session = await this.sessionRepository.findSessionByDate(userId, today);
+
+    return !!session;
+  }
 }

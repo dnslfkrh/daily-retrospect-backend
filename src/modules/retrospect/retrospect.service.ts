@@ -27,6 +27,10 @@ export class RetrospectService {
     return await this.settingService.setSetting(user, setting);
   }
 
+  async todaySessionExistCheck(user: UserSub): Promise<boolean> {
+    return await this.sessionService.todaySessionExistCheck(user);
+  }
+
   async findOrCreateSession(user: UserSub): Promise<FormattedSessionOutput> {
     return await this.sessionService.findOrCreateSession(user);
   }
