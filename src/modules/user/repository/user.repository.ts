@@ -19,6 +19,13 @@ export class UserRepository {
     });
   }
 
+  async findUserNameByCognitoId(cognitoId: string): Promise<string | null> {
+    return await this.userRepository.findOne({
+      where: { cognito_id: cognitoId, is_deleted: false },
+      select: ["name"]
+    }).then(user => user ? user.name : null);
+  }
+
   async findEmailByCognitoId(cognitoId: string): Promise<string | null> {
     const user = await this.userRepository.findOne({
       where: { cognito_id: cognitoId, is_deleted: false }
@@ -76,6 +83,15 @@ export class UserRepository {
       .createQueryBuilder("user")
       .delete()
       .where("cognito_id = :cognitoId", { cognitoId })
+      .execute();
+  }
+
+  async updateUserName(id: number, name: string): Promise<void> {
+    const result = await this.userRepository
+      .createQueryBuilder()
+      .update()
+      .set({ name })
+      .where("id = :id", { id })
       .execute();
   }
 }
