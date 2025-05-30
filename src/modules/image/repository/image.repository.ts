@@ -11,12 +11,17 @@ export class ImageRepository {
   ) { }
 
   async findImagesByUserAndDate(userId: number, date: string): Promise<DailyImage[]> {
-    return await this.imageRepository.find({
+    const image = await this.imageRepository.find({
       where: {
         user: { id: userId },
         date: date
+      },
+      order: {
+        id: "ASC"
       }
     });
+    console.log(image);
+    return image;
   }
 
   async deleteImageById(id: number): Promise<DeleteResult> {
@@ -35,6 +40,9 @@ export class ImageRepository {
       description: data.description,
       date: data.date,
     });
+
+    console.log("Image data to save:", image);
+
     return await this.imageRepository.save(image);
   }
 
@@ -47,7 +55,7 @@ export class ImageRepository {
       where: { user: { id: userId } },
       order: {
         date: "DESC",
-        created_at: "DESC"
+        id: "DESC",
       },
       skip: offset,
       take: imagesCount

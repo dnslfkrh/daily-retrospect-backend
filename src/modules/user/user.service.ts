@@ -82,8 +82,8 @@ export class UserService {
           Username: username,
         })
       );
-    } catch (err) {
-      console.error("Cognito 사용자 삭제 실패", err);
+    } catch (error) {
+      console.error("Cognito 사용자 삭제 실패", error);
 
       try {
         await this.userRepository.unmarkUserAsDeleted(username);
@@ -130,6 +130,20 @@ export class UserService {
     }
   }
 
+  async changeName(user: UserSub, name: string): Promise<void> {
+    const userId = await this.userRepository.findUserIdByCognitoId(user.sub);
+    if (!userId) {
+      throw new UnauthorizedException("사용자를 찾을 수 없습니다.");
+    }
+
+    try {
+      await this.userRepository.updateUserName(userId, name);
+    } catch (error) {
+      console.error("Failed to update user name:", error);
+      throw new InternalServerErrorException("사용자 이름 변경에 실패했습니다.");
+    }
+  }
+
   async changePassword(user: UserSub, body: ChangePasswordDto, accessToken: string): Promise<void> {
     const { previousPassword, newPassword } = body;
 
@@ -156,5 +170,10 @@ export class UserService {
         throw new UnauthorizedException("Failed to change password");
       }
     }
+  }
+
+  async getMe(user: UserSub) {
+    const cognitoId = user.sub;
+    return await this.userRepository.findUserNameByCognitoId(cognitoId);
   }
 }

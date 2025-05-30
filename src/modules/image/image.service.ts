@@ -64,21 +64,26 @@ export class ImageService {
     const existingImages = await this.imageRepository.findImagesByUserAndDate(userId, today);
     const toDelete = existingImages.filter((image) => !existingKeys.includes(image.s3_key));
 
-    const deletePromises = toDelete.map(async (image) => {
-      await this.imageRepository.deleteImageById(image.id);
-      await this.s3Service.deleteObject(image.s3_key);
-    });
+    if (toDelete.length > 0) {
+      const deletePromises = toDelete.map(async (image) => {
+        await this.imageRepository.deleteImageById(image.id);
+        await this.s3Service.deleteObject(image.s3_key);
+      });
+      await Promise.all(deletePromises);
+    }
 
-    const savePromises = newImages.map(async (image) => {
-      return this.imageRepository.saveImage({
+    const savedImages = [];
+    for (const image of newImages) {
+      const savedImage = await this.imageRepository.saveImage({
         userId,
         s3_key: image.s3_key,
         description: image.description || "",
         date: today,
       });
-    });
+      savedImages.push(savedImage);
+    }
 
-    return await Promise.all([...deletePromises, ...savePromises]);
+    return savedImages;
   }
 
   async getImagesForGallery(user: UserSub, page: number, imagesCount: number) {

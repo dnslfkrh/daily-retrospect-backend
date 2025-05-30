@@ -22,11 +22,13 @@ export class GoalController {
 
   @Post("create")
   async createGoal(@User() user: UserSub, @Body() createGoalDto: CreateGoalDto) {
+    console.log("createGoalDto: ", createGoalDto);
     return this.goalService.createGoal(user, createGoalDto);
   }
 
   @Put("update")
   async updateGoal(@User() user: UserSub, @Body() updateGoalDto: UpdateGoalDto) {
+    console.log("updateGoalDto: ", updateGoalDto);
     return this.goalService.updateGoal(user, updateGoalDto);
   }
 

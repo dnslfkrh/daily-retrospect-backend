@@ -11,6 +11,15 @@ export class UserController {
     private readonly userService: UserService
   ) { }
 
+  @Post("change-name")
+  async changeName(@User() user: UserSub, @Body("name") name: string) {
+    await this.userService.changeName(user, name);
+
+    return {
+      message: "Name changed successfully.",
+    };
+  }
+
   @Post("change-password")
   async changePassword(
     @User() user: UserSub,
@@ -32,6 +41,11 @@ export class UserController {
     @Query("email") email: string
   ) {
     return await this.userService.deleteUser(user, email);
+  }
+
+  @Get("me")
+  async getMe(@User() user: UserSub) {
+    return await this.userService.getMe(user);
   }
 
   @Get("user-info")
