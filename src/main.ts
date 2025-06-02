@@ -1,6 +1,3 @@
-import * as dotenv from "dotenv";
-dotenv.config();
-
 import { NestFactory } from '@nestjs/core';
 import { App } from './app';
 import { testConnection } from './common/utils/testConnection';
