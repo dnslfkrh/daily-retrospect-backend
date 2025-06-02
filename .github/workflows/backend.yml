@@ -20,12 +20,19 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
+      - name: Create .env file
+        run: |
+          echo "${{ secrets.ENV_CONTENTS }}" > .env
+
+      - name: Upload .env to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa .env ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ec2-user/daily-retrospect-backend/.env
+
       - name: Deploy to EC2
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          ENV_CONTENTS: ${{ secrets.ENV_CONTENTS }}
         run: |
-          ssh -o StrictHostKeyChecking=no -v ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
             cd /home/ec2-user/daily-retrospect-backend
             
             # 리모트 URL 변경 (토큰 포함)
@@ -37,17 +44,14 @@ jobs:
             # 최신 원격 정보 가져오기
             git fetch origin prod
             
-            # 강제로 원격 브랜치와 동기화 (주의: 로컬 변경사항이 있으면 덮어씁니다)
+            # 강제로 원격 브랜치와 동기화
             git reset --hard origin/prod
             
-            # 환경변수 설정
-            echo "${ENV_CONTENTS}" > .env
-
             # 빌드 및 재시작
             pnpm install
             pnpm build
             pm2 restart ecosystem.config.js
             
-            # 보안을 위해 리모트 URL 복원
+            # 리모트 URL 복원
             git remote set-url origin https://github.com/dnslfkrh/daily-retrospect-backend.git
           EOF
