@@ -25,16 +25,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           ENV_CONTENTS: ${{ secrets.ENV_CONTENTS }}
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             set -e
-            
+
             cd /home/ec2-user/daily-retrospect-backend
 
-            # GitHub 토큰으로 리모트 URL 설정
+            # 리모트 URL에 토큰 포함
             git remote set-url origin https://${GH_TOKEN}@github.com/dnslfkrh/daily-retrospect-backend.git
 
-            # 작업 디렉토리 정리 및 최신화
-            git stash || true
+            git stash
             git fetch origin prod
             git reset --hard origin/prod
 
@@ -43,11 +42,10 @@ jobs:
 ${ENV_CONTENTS}
 EOT
 
-            # 빌드 및 애플리케이션 재시작
             pnpm install
             pnpm build
             pm2 restart ecosystem.config.js
 
-            # 보안을 위해 리모트 URL 복원
+            # 리모트 URL 복원
             git remote set-url origin https://github.com/dnslfkrh/daily-retrospect-backend.git
-          EOF
+EOF
