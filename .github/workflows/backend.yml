@@ -26,20 +26,18 @@ jobs:
           ENV_CONTENTS: ${{ secrets.ENV_CONTENTS }}
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} bash -s <<EOF
-            set -e
+          cd /home/ec2-user/daily-retrospect-backend
 
-            cd /home/ec2-user/daily-retrospect-backend
+          git remote set-url origin https://${GH_TOKEN}@github.com/dnslfkrh/daily-retrospect-backend.git
+          git stash || true
+          git fetch origin prod
+          git reset --hard origin/prod
 
-            git remote set-url origin https://${GH_TOKEN}@github.com/dnslfkrh/daily-retrospect-backend.git
-            git stash || true
-            git fetch origin prod
-            git reset --hard origin/prod
+          echo "${ENV_CONTENTS}" > .env
 
-            echo "${ENV_CONTENTS}" > .env
+          pnpm install
+          pnpm build
+          pm2 restart ecosystem.config.js
 
-            pnpm install
-            pnpm build
-            pm2 restart ecosystem.config.js
-
-            git remote set-url origin https://github.com/dnslfkrh/daily-retrospect-backend.git
-EOF
+          git remote set-url origin https://github.com/dnslfkrh/daily-retrospect-backend.git
+          EOF
