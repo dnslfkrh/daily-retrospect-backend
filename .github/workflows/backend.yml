@@ -20,38 +20,34 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Create .env file
-        run: |
-          echo "${{ secrets.ENV_CONTENTS }}" > .env
-
-      - name: Upload .env to EC2
-        run: |
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa .env ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ec2-user/daily-retrospect-backend/.env
-
       - name: Deploy to EC2
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          ENV_CONTENTS: ${{ secrets.ENV_CONTENTS }}
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            set -e
+            
             cd /home/ec2-user/daily-retrospect-backend
-            
-            # 리모트 URL 변경 (토큰 포함)
+
+            # GitHub 토큰으로 리모트 URL 설정
             git remote set-url origin https://${GH_TOKEN}@github.com/dnslfkrh/daily-retrospect-backend.git
-            
-            # 변경사항 저장 또는 스태시
-            git stash
-            
-            # 최신 원격 정보 가져오기
+
+            # 작업 디렉토리 정리 및 최신화
+            git stash || true
             git fetch origin prod
-            
-            # 강제로 원격 브랜치와 동기화
             git reset --hard origin/prod
-            
-            # 빌드 및 재시작
+
+            # .env 파일 생성
+            cat <<EOT > .env
+${ENV_CONTENTS}
+EOT
+
+            # 빌드 및 애플리케이션 재시작
             pnpm install
             pnpm build
             pm2 restart ecosystem.config.js
-            
-            # 리모트 URL 복원
+
+            # 보안을 위해 리모트 URL 복원
             git remote set-url origin https://github.com/dnslfkrh/daily-retrospect-backend.git
           EOF
