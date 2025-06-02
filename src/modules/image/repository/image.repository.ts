@@ -20,7 +20,6 @@ export class ImageRepository {
         id: "ASC"
       }
     });
-    console.log(image);
     return image;
   }
 
