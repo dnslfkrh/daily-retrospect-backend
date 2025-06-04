@@ -18,7 +18,8 @@ import { ImageModule } from './modules/image/image.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: process.env.NODE_ENV === 'development' ? '.env.dev' : '.env.prod',
+      // envFilePath: process.env.NODE_ENV === 'development' ? '.env.dev' : '.env.prod',
+      envFilePath: '.env'
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
