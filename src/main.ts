@@ -1,16 +1,22 @@
 import { NestFactory } from '@nestjs/core';
 import { App } from './app';
-import { testConnection } from './common/utils/testConnection';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import * as cookieParser from 'cookie-parser';
 import { ConfigService } from "@nestjs/config";
-
-const logger = new Logger("TestConnection");
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
-
   const app = await NestFactory.create(App);
   const configService = app.get(ConfigService);
+
+  const config = new DocumentBuilder()
+    .setTitle('Daily Retrospect API')
+    .setDescription('일일회고 API 명세서')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
 
   app.enableCors({
     origin: configService.get<string>('FRONTEND_URL'),
@@ -20,9 +26,9 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,            // DTO에 정의되지 않은 값 자동 제거
-    transform: true,            // 요청 데이터를 DTO 타입으로 변환
-    forbidNonWhitelisted: true, // DTO에 없는 값이 들어오면 에러 발생
+    whitelist: true,
+    transform: true,
+    forbidNonWhitelisted: true,
   }));
 
   const PORT = configService.get<number>('PORT');
@@ -30,8 +36,7 @@ async function bootstrap() {
 
   await app.listen(PORT, "0.0.0.0");
 
-  logger.log(`Server is running on ${BACKEND_URL}, Port: ${PORT}`);
+  console.log(`Swagger documentation available at ${BACKEND_URL}/api`);
 }
 
-testConnection();
 bootstrap();
