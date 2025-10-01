@@ -88,3 +88,10 @@ AI가 사용자의 회고 내용을 분석하여 자연스러운 문장 형태�
 - 불필요한 이미지 데이터를 즉시 정리하여 S3와 DB 최적화  
 
 ---
+
+### 실행 영상
+```
+https://youtube.com/shorts/_pWCBhqHqSs?si=ZRzhE_K8qJSE1lPw
+```
+
+---
